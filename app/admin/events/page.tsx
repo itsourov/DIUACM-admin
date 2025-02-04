@@ -1,42 +1,46 @@
 // app/admin/events/page.tsx
-"use server"
-import {Suspense} from 'react';
-import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
-import {EventsList} from "@/app/admin/events/components/EventsList";
-import {getEventsAction} from "@/app/admin/events/actions";
+
+import { Metadata } from 'next';
+import { getEventsAction } from './actions';
+import { EventsList } from './components/EventsList';
+
+export const metadata: Metadata = {
+    title: 'Events Management',
+    description: 'Manage events in the system',
+};
 
 interface EventsPageProps {
     searchParams: {
         page?: string;
         search?: string;
-        status?: string;
-        type?: string;
     };
 }
 
-export default async function EventsPage({searchParams}: EventsPageProps) {
-    const awaitedSearchParams = await searchParams;
-    const {data, currentPage, totalPages} = await getEventsAction({
-        page: awaitedSearchParams?.page ? parseInt(awaitedSearchParams.page, 10) : 1,
-        search: awaitedSearchParams?.search,
+export default async function EventsPage({ searchParams }: EventsPageProps) {
+    const page = searchParams.page ? parseInt(searchParams.page) : 1;
+    const search = searchParams.search || '';
+
+    const { data: events, totalPages, currentPage } = await getEventsAction({
+        page,
+        search,
     });
 
     return (
         <div className="container mx-auto py-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Events</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Suspense fallback={<div>Loading...</div>}>
-                        <EventsList
-                            events={data}
-                            totalPages={totalPages}
-                            currentPage={currentPage}
-                        />
-                    </Suspense>
-                </CardContent>
-            </Card>
+            <div className="space-y-6">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Events Management</h2>
+                    <p className="text-muted-foreground">
+                        Create and manage events in the system
+                    </p>
+                </div>
+
+                <EventsList
+                    events={events}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                />
+            </div>
         </div>
     );
 }
