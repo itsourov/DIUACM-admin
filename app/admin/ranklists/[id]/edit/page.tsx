@@ -2,6 +2,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
 import { RanklistForm } from "../../components/RanklistForm";
 import { getRanklistAction, updateRanklistAction } from "../../actions";
+import { getRanklistWithEvents, getEvents } from '../actions';
+import { EventManager } from '../components/event-manager';
 import { Metadata } from 'next';
 
 interface EditRanklistPageProps {
@@ -25,8 +27,13 @@ export default async function EditRanklistPage({ params }: EditRanklistPageProps
         notFound();
     }
 
+    const [{ selectedEvents }, availableEvents] = await Promise.all([
+        getRanklistWithEvents(params.id),
+        getEvents({ page: 1, limit: 10 })
+    ]);
+
     return (
-        <div className="container mx-auto py-6">
+        <div className="container mx-auto py-6 space-y-6">
             <Card>
                 <CardHeader className="space-y-1">
                     <CardTitle>Edit Ranklist</CardTitle>
@@ -37,6 +44,19 @@ export default async function EditRanklistPage({ params }: EditRanklistPageProps
                         action={updateRanklistAction}
                         isEditing={true}
                         ranklistId={params.id}
+                    />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Manage Events</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <EventManager
+                        ranklistId={params.id}
+                        initialEvents={selectedEvents}
+                        initialAvailableEvents={availableEvents}
                     />
                 </CardContent>
             </Card>

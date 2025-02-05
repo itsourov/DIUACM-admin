@@ -170,6 +170,7 @@ model EventsOnRanklists {
   weight     Int      @default(1)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  updatedBy  String?
 
   @@id([eventId, ranklistId])
 }
