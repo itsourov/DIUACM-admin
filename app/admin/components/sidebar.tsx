@@ -8,10 +8,12 @@ import {Button} from "@/components/ui/button"
 import {
     LayoutDashboard,
     Users,
-    Settings,
     Package,
-    BarChart,
-    X
+    X,
+    Calendar,
+    List,
+    FileText,
+    Activity
 } from "lucide-react"
 import {useEffect} from "react"
 import {useSidebarStore} from "../lib/store"
@@ -30,22 +32,22 @@ const sidebarLinks = [
     {
         title: "Events",
         href: "/admin/events",
-        icon: Package,
+        icon: Calendar,
     },
     {
         title: "Ranklists",
         href: "/admin/ranklists",
-        icon: Package,
+        icon: List,
     },
     {
-        title: "Analytics",
-        href: "/admin/analytics",
-        icon: BarChart,
+        title: "Blog",
+        href: "/admin/blog-posts",
+        icon: FileText,
     },
     {
-        title: "Settings",
-        href: "/admin/settings",
-        icon: Settings,
+        title: "Trackers",
+        href: "/admin/trackers",
+        icon: Activity,
     },
 ]
 
