@@ -13,8 +13,6 @@ export class DateTime {
         format: 'display'
     };
 
-    private static readonly SYSTEM_TIME = new Date('2025-02-04T23:25:42Z');
-    private static readonly CURRENT_USER = 'itsourov';
 
     /**
      * Convert UTC date to local datetime string for form inputs
@@ -49,7 +47,7 @@ export class DateTime {
      * Format a date for display in user's local timezone
      */
     static formatDisplay(date: Date | string, options: Partial<DateTimeOptions> = {}): string {
-        const opts = { ...this.DEFAULT_OPTIONS, ...options };
+        const opts = {...this.DEFAULT_OPTIONS, ...options};
         const dateObj = new Date(date);
 
         if (!this.isValid(dateObj)) {
@@ -76,13 +74,6 @@ export class DateTime {
         }
     }
 
-    static getCurrentUTCTime(): Date {
-        return this.SYSTEM_TIME;
-    }
-
-    static getCurrentUser(): string {
-        return this.CURRENT_USER;
-    }
 
     static getUserTimezone(): string {
         return Intl.DateTimeFormat().resolvedOptions().timeZone;

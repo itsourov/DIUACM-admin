@@ -13,7 +13,8 @@ import {
     Calendar,
     List,
     FileText,
-    Activity
+    Activity,
+    Image as ImageIcon
 } from "lucide-react"
 import {useEffect} from "react"
 import {useSidebarStore} from "../lib/store"
@@ -49,7 +50,12 @@ const sidebarLinks = [
         href: "/admin/trackers",
         icon: Activity,
     },
-]
+    {
+        title: "Galleries",
+        href: "/admin/galleries",
+        icon: ImageIcon,
+    },
+];
 
 export function Sidebar() {
     const pathname = usePathname()
