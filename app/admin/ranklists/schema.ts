@@ -1,3 +1,4 @@
+// app/admin/ranklists/schema.ts
 import { z } from 'zod';
 import { Ranklist } from '@prisma/client';
 

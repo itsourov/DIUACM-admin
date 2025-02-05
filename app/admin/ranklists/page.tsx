@@ -1,3 +1,4 @@
+// app/admin/ranklists/page.tsx
 import { Metadata } from 'next';
 import { getRanklistsAction } from './actions';
 import { RanklistsList } from './components/RanklistsList';

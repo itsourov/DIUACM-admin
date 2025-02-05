@@ -1,3 +1,4 @@
+// app/admin/components/shared/DataTable/DataTable.tsx
 'use client';
 
 import React, { useCallback, useState } from 'react';
