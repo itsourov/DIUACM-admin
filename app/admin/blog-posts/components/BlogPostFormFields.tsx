@@ -26,8 +26,6 @@ const POST_STATUSES = Object.values(BlogPostStatus);
 
 export function BlogPostFormFields() {
     const form = useFormContext<BlogPostFormData>();
-    const { watch } = form;
-    const status = watch('status');
 
     return (
         <div className="space-y-6">
