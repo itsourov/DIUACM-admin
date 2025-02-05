@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/actions.ts
 'use server'
 
 import { prisma } from "@/lib/prisma";

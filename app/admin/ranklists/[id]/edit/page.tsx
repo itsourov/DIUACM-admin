@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/edit/page.tsx
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
 import { RanklistForm } from "../../components/RanklistForm";

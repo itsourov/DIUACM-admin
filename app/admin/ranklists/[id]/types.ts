@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/types.ts
 import { BaseItem, PivotData } from '@/types/many-to-many';
 
 export interface Event extends BaseItem {

@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/components/event-manager.tsx
 'use client';
 
 import { useState, useCallback } from 'react';

@@ -1,3 +1,4 @@
+// types/many-to-many.ts
 export interface BaseItem {
     id: string;
     title: string;
