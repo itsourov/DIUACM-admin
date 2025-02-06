@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/edit/page.tsx
 import {notFound} from "next/navigation"
 import {prisma} from "@/lib/prisma"
 import {ManageEvents} from "../manage-events"
