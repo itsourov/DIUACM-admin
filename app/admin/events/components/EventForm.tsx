@@ -106,7 +106,7 @@ export function EventForm({
                 <div className="flex items-center gap-4">
                     <Button
                         type="submit"
-                        disabled={isSubmitting || !form.formState.isDirty}
+                        disabled={isSubmitting}
                         className="w-full sm:w-auto"
                     >
                         {isSubmitting && (
