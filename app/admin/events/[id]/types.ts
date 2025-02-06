@@ -3,4 +3,4 @@ export type RanklistWithRelations = {
     title: string;
     keyword: string;
     weight?: number;
-}
+};

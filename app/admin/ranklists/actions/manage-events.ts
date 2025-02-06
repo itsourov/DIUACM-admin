@@ -1,3 +1,4 @@
+// app/admin/ranklists/actions/manage-events.ts
 'use server'
 
 import {revalidatePath} from "next/cache"

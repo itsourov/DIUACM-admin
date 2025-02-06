@@ -1,57 +1,88 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
-import { EventForm } from "@/app/admin/events/components/EventForm";
-import { getEventAction, updateEventAction } from "@/app/admin/events/actions";
-import { getEventRanklists } from "../actions";
-import { Metadata } from 'next';
+import { prisma } from "@/lib/prisma";
+import { EventForm } from "../../components/EventForm";
+import { updateEventAction } from "../../actions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ManageRanklists } from "../manage-ranklists";
+import { Metadata } from 'next';
 
-type Props = {
-    params: Promise<{ id: string }> | { id: string };
+interface EditEventPageProps {
+    params: { id: string };
 }
 
-export async function generateMetadata(
-    { params }: Props
-): Promise<Metadata> {
-    // Await the params
-    const resolvedParams = await params;
-    const event = await getEventAction(resolvedParams.id);
+async function getEventData(id: string) {
+    try {
+        const [event, ranklists] = await Promise.all([
+            prisma.event.findUnique({
+                where: { id },
+            }),
+            prisma.ranklist.findMany({
+                where: {
+                    events: {
+                        some: {
+                            eventId: id,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    keyword: true,
+                    events: {
+                        where: {
+                            eventId: id,
+                        },
+                        select: {
+                            weight: true,
+                        },
+                    },
+                },
+            }),
+        ]);
 
-    if (!event) {
-        return { title: 'Event Not Found' };
+        if (!event) {
+            return null;
+        }
+
+        const transformedRanklists = ranklists.map(ranklist => ({
+            ...ranklist,
+            weight: ranklist.events[0]?.weight || 1.0,
+        }));
+
+        return {
+            event,
+            ranklists: transformedRanklists,
+        };
+    } catch (error) {
+        console.error('Error fetching event data:', error);
+        return null;
     }
+}
+
+export async function generateMetadata({ params }: EditEventPageProps): Promise<Metadata> {
+    const data = await getEventData(params.id);
+    if (!data) return { title: 'Event Not Found' };
 
     return {
-        title: `Edit Event - ${event.title}`,
-        description: `Edit event details for ${event.title}`,
+        title: `Edit Event - ${data.event.title}`,
+        description: `Edit event details for ${data.event.title}`,
     };
 }
 
-export default async function EditEventPage(
-    { params }: Props
-) {
-    // Await the params
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+export default async function EditEventPage({ params }: EditEventPageProps) {
+    const data = await getEventData(params.id);
 
-    if (!id) {
+    if (!data) {
         notFound();
     }
 
-    const [event, ranklists] = await Promise.all([
-        getEventAction(id),
-        getEventRanklists(id),
-    ]);
-
-    if (!event) {
-        notFound();
-    }
+    const { event, ranklists } = data;
 
     return (
-        <div className="container mx-auto py-6">
+        <div className="container py-6">
             <Card className="mb-6">
-                <CardHeader className="space-y-1">
+                <CardHeader>
                     <CardTitle>Event: {event.title}</CardTitle>
                 </CardHeader>
             </Card>
@@ -62,7 +93,7 @@ export default async function EditEventPage(
                         Details
                     </TabsTrigger>
                     <TabsTrigger value="ranklists">
-                        Ranklists ({ranklists?.length || 0})
+                        Ranklists ({ranklists.length})
                     </TabsTrigger>
                 </TabsList>
 
@@ -73,7 +104,7 @@ export default async function EditEventPage(
                                 initialData={event}
                                 action={updateEventAction}
                                 isEditing={true}
-                                eventId={id}
+                                eventId={params.id}
                             />
                         </CardContent>
                     </Card>
@@ -83,8 +114,8 @@ export default async function EditEventPage(
                     <Card>
                         <CardContent className="pt-6">
                             <ManageRanklists
-                                eventId={id}
-                                initialRanklists={ranklists || []}
+                                eventId={event.id}
+                                initialRanklists={ranklists}
                             />
                         </CardContent>
                     </Card>

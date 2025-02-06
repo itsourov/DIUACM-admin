@@ -11,31 +11,20 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useState, useTransition, useMemo } from "react"
+import { useState, useTransition, useMemo, useCallback, useEffect } from "react"
+import { RanklistWithRelations } from "./types"
+import { attachRanklist, detachRanklist, getAvailableRanklists, updateRanklistWeight } from "../actions/manage-ranklists"
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
-import {
-    attachRanklist,
-    detachRanklist,
-    getAvailableRanklists,
-    updateRanklistWeight
-} from "@/app/admin/events/[id]/actions";
 
-type RanklistWithRelations = {
-    id: string;
-    title: string;
-    keyword: string;
-    weight?: number;
-}
-
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 10
 
 export function ManageRanklists({
-    eventId,
-    initialRanklists,
-}: {
-    eventId: string;
-    initialRanklists: RanklistWithRelations[];
+                                    eventId,
+                                    initialRanklists,
+                                }: {
+    eventId: string
+    initialRanklists: RanklistWithRelations[]
 }) {
     const [ranklists, setRanklists] = useState(initialRanklists)
     const [isPending, startTransition] = useTransition()
@@ -45,7 +34,7 @@ export function ManageRanklists({
     const [page, setPage] = useState(1)
     const [attachedPage, setAttachedPage] = useState(1)
     const [availableRanklists, setAvailableRanklists] = useState<RanklistWithRelations[]>([])
-    const [, setTotalPages] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
     const [selectedRanklist, setSelectedRanklist] = useState<RanklistWithRelations | null>(null)
     const [editWeight, setEditWeight] = useState<number>(0)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -64,13 +53,8 @@ export function ManageRanklists({
         attachedPage * ITEMS_PER_PAGE
     )
 
-    const loadAvailableRanklists = async () => {
+    const loadAvailableRanklists = useCallback(() => {
         startTransition(async () => {
-            toast({
-                title: " loading ranklists",
-                description: "loading",
-                variant: "destructive"
-            })
             const result = await getAvailableRanklists(eventId, search, page)
             if (result.success) {
                 setAvailableRanklists(result.ranklists)
@@ -86,7 +70,13 @@ export function ManageRanklists({
                 })
             }
         })
-    }
+    }, [eventId, search, page, toast])
+
+    useEffect(() => {
+        if (isAddDialogOpen) {
+            loadAvailableRanklists()
+        }
+    }, [isAddDialogOpen, loadAvailableRanklists])
 
     const handleAttach = (ranklistId: string) => {
         startTransition(async () => {
@@ -124,6 +114,18 @@ export function ManageRanklists({
         })
     }
 
+    const handleWeightChange = (value: string) => {
+        if (value === '') {
+            setEditWeight(0)
+            return
+        }
+
+        const numValue = parseFloat(value)
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
+            setEditWeight(numValue)
+        }
+    }
+
     const handleWeightUpdate = () => {
         if (!selectedRanklist) return
         if (editWeight < 0 || editWeight > 1) return
@@ -146,6 +148,17 @@ export function ManageRanklists({
         })
     }
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value)
+        setPage(1)
+        loadAvailableRanklists()
+    }
+
+    const handleAttachedSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAttachedSearch(e.target.value)
+        setAttachedPage(1)
+    }
+
     return (
         <div className="space-y-4">
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -162,10 +175,7 @@ export function ManageRanklists({
                         <Input
                             placeholder="Search available ranklists..."
                             value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value)
-                                setPage(1)
-                            }}
+                            onChange={handleSearchChange}
                         />
                         <Table>
                             <TableHeader>
@@ -176,23 +186,48 @@ export function ManageRanklists({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {availableRanklists.map((ranklist) => (
-                                    <TableRow key={ranklist.id}>
-                                        <TableCell>{ranklist.title}</TableCell>
-                                        <TableCell>{ranklist.keyword}</TableCell>
-                                        <TableCell>
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handleAttach(ranklist.id)}
-                                                disabled={isPending}
-                                            >
-                                                Attach
-                                            </Button>
+                                {availableRanklists.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center py-4">
+                                            {isPending ? "Loading..." : "No ranklists found"}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ) : (
+                                    availableRanklists.map((ranklist) => (
+                                        <TableRow key={ranklist.id}>
+                                            <TableCell>{ranklist.title}</TableCell>
+                                            <TableCell>{ranklist.keyword}</TableCell>
+                                            <TableCell>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleAttach(ranklist.id)}
+                                                    disabled={isPending}
+                                                >
+                                                    Attach
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
+                        <div className="flex justify-between items-center">
+                            <Button
+                                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                                disabled={page === 1 || isPending}
+                            >
+                                Previous
+                            </Button>
+                            <span>
+                                Page {page} of {totalPages}
+                            </span>
+                            <Button
+                                onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={page >= totalPages || isPending}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -209,17 +244,15 @@ export function ManageRanklists({
                             <Input
                                 type="number"
                                 value={editWeight}
-                                onChange={(e) => {
-                                    const value = parseFloat(e.target.value)
-                                    if (!isNaN(value) && value >= 0 && value <= 1) {
-                                        setEditWeight(value)
-                                    }
-                                }}
+                                onChange={(e) => handleWeightChange(e.target.value)}
                                 step="0.1"
                                 min="0"
                                 max="1"
                                 placeholder="Enter weight (0.0 - 1.0)"
                             />
+                            <p className="text-sm text-muted-foreground">
+                                Weight must be between 0.0 and 1.0
+                            </p>
                         </div>
                     </div>
                     <DialogFooter>
@@ -239,15 +272,19 @@ export function ManageRanklists({
             {/* Attached ranklists section */}
             <div className="rounded-md border">
                 <div className="p-4 space-y-4">
-                    <Input
-                        placeholder="Search attached ranklists..."
-                        value={attachedSearch}
-                        onChange={(e) => {
-                            setAttachedSearch(e.target.value)
-                            setAttachedPage(1)
-                        }}
-                        className="max-w-sm"
-                    />
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Input
+                                placeholder="Search attached ranklists..."
+                                value={attachedSearch}
+                                onChange={handleAttachedSearchChange}
+                                className="max-w-sm"
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                {filteredRanklists.length} ranklists found
+                            </p>
+                        </div>
+                    </div>
 
                     <Table>
                         <TableHeader>
@@ -259,34 +296,42 @@ export function ManageRanklists({
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paginatedRanklists.map((ranklist) => (
-                                <TableRow key={ranklist.id}>
-                                    <TableCell>{ranklist.title}</TableCell>
-                                    <TableCell>{ranklist.keyword}</TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSelectedRanklist(ranklist)
-                                                setEditWeight(ranklist.weight || 1.0)
-                                            }}
-                                        >
-                                            {ranklist.weight?.toFixed(1) || '1.0'}
-                                        </Button>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => handleDetach(ranklist.id)}
-                                            disabled={isPending}
-                                        >
-                                            Detach
-                                        </Button>
+                            {paginatedRanklists.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center py-4">
+                                        {attachedSearch ? "No ranklists match your search" : "No ranklists attached"}
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                paginatedRanklists.map((ranklist) => (
+                                    <TableRow key={ranklist.id}>
+                                        <TableCell>{ranklist.title}</TableCell>
+                                        <TableCell>{ranklist.keyword}</TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setSelectedRanklist(ranklist)
+                                                    setEditWeight(ranklist.weight || 1.0)
+                                                }}
+                                            >
+                                                {ranklist.weight?.toFixed(2) || '1.0'}
+                                            </Button>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleDetach(ranklist.id)}
+                                                disabled={isPending}
+                                            >
+                                                Detach
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
 
