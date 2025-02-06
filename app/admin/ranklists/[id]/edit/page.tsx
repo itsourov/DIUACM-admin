@@ -1,109 +1,164 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { notFound } from 'next/navigation';
-import { RanklistForm } from "../../components/RanklistForm";
-import { getRanklistAction, updateRanklistAction } from "../../actions";
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ManageEvents } from "../manage-events"
 import { ManageUsers } from "../manage-users"
-import { Metadata } from 'next';
+import { ManageTrackers } from "../manage-trackers"
+import { EditRanklistDetails } from "../edit-ranklist"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface EditRanklistPageProps {
-    params: { id: string };
-}
-
-export async function generateMetadata({ params }: EditRanklistPageProps): Promise<Metadata> {
-    const ranklist = await getRanklistAction(params.id);
-    if (!ranklist) return { title: 'Ranklist Not Found' };
-
-    return {
-        title: `Edit Ranklist - ${ranklist.title}`,
-        description: `Edit ranklist details for ${ranklist.title}`,
-    };
-}
-
-export default async function EditRanklistPage({ params }: EditRanklistPageProps) {
-    // Fetch ranklist data with both basic info and related data
-    const ranklist = await prisma.ranklist.findUnique({
-        where: { id: params.id },
-        include: {
-            events: {
-                include: {
-                    event: {
-                        select: {
-                            id: true,
-                            title: true,
-                            startDateTime: true,
+async function getRanklistData(id: string) {
+    try {
+        const [ranklist, users, events, trackers] = await Promise.all([
+            prisma.ranklist.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    title: true,
+                    keyword: true,
+                },
+            }),
+            prisma.user.findMany({
+                where: {
+                    ranklists: {
+                        some: {
+                            ranklistId: id,
                         },
                     },
                 },
-            },
-            users: {
-                include: {
-                    user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    image: true,
+                    ranklists: {
+                        where: {
+                            ranklistId: id,
+                        },
                         select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            username: true,
-                            image: true,
+                            score: true,
                         },
                     },
                 },
-            },
-        },
-    });
+            }),
+            prisma.event.findMany({
+                where: {
+                    ranklists: {
+                        some: {
+                            ranklistId: id,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    startDateTime: true,
+                    ranklists: {
+                        where: {
+                            ranklistId: id,
+                        },
+                        select: {
+                            weight: true,
+                        },
+                    },
+                },
+            }),
+            prisma.tracker.findMany({
+                where: {
+                    ranklists: {
+                        some: {
+                            ranklistId: id,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    createdAt: true,
+                },
+            }),
+        ])
 
-    if (!ranklist) {
-        notFound();
+        if (!ranklist) {
+            return null
+        }
+
+        const transformedUsers = users.map(user => ({
+            ...user,
+            score: user.ranklists[0]?.score || 0,
+        }))
+
+        const transformedEvents = events.map(event => ({
+            ...event,
+            weight: event.ranklists[0]?.weight || 1.0,
+        }))
+
+        return {
+            ranklist,
+            users: transformedUsers,
+            events: transformedEvents,
+            trackers,
+        }
+    } catch (error) {
+        console.error('Error fetching ranklist data:', error)
+        return null
+    }
+}
+
+export default async function EditRanklistPage({
+                                                   params,
+                                               }: {
+    params: { id: string }
+}) {
+    const data = await getRanklistData(params.id)
+
+    if (!data) {
+        notFound()
     }
 
-    // Transform events and users data
-    const events = ranklist.events.map((e) => ({
-        ...e.event,
-        weight: e.weight,
-    }));
-
-    const users = ranklist.users.map((u) => ({
-        ...u.user,
-        score: u.score,
-    }));
+    const { ranklist, users, events, trackers } = data
 
     return (
-        <div className="container mx-auto py-6 space-y-6">
-            <h1 className="text-2xl font-bold mb-6">Edit Ranklist: {ranklist.title}</h1>
+        <div className="container py-6">
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle>Ranklist: {ranklist.title}</CardTitle>
+                </CardHeader>
+            </Card>
 
-            <Tabs defaultValue="details" className="space-y-6">
-                <TabsList className="w-full justify-start">
-                    <TabsTrigger value="details">Ranklist Details</TabsTrigger>
-                    <TabsTrigger value="events">Manage Events</TabsTrigger>
-                    <TabsTrigger value="users">Manage Users</TabsTrigger>
+            <Tabs defaultValue="details" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="details">
+                        Details
+                    </TabsTrigger>
+                    <TabsTrigger value="events">
+                        Events ({events.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="users">
+                        Users ({users.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="trackers">
+                        Trackers ({trackers.length})
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="details">
-                    <Card>
-                        <CardHeader className="space-y-1">
-                            <CardTitle>Edit Ranklist Details</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <RanklistForm
-                                initialData={ranklist}
-                                action={updateRanklistAction}
-                                isEditing={true}
-                                ranklistId={params.id}
-                            />
-                        </CardContent>
-                    </Card>
+                    <EditRanklistDetails
+                        ranklistId={ranklist.id}
+                        initialData={{
+                            title: ranklist.title,
+                            keyword: ranklist.keyword,
+                        }}
+                    />
                 </TabsContent>
 
                 <TabsContent value="events">
                     <Card>
-                        <CardHeader className="space-y-1">
-                            <CardTitle>Manage Events</CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             <ManageEvents
-                                ranklistId={params.id}
+                                ranklistId={ranklist.id}
                                 initialEvents={events}
                             />
                         </CardContent>
@@ -112,18 +167,26 @@ export default async function EditRanklistPage({ params }: EditRanklistPageProps
 
                 <TabsContent value="users">
                     <Card>
-                        <CardHeader className="space-y-1">
-                            <CardTitle>Manage Users</CardTitle>
-                        </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             <ManageUsers
-                                ranklistId={params.id}
+                                ranklistId={ranklist.id}
                                 initialUsers={users}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="trackers">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <ManageTrackers
+                                ranklistId={ranklist.id}
+                                initialTrackers={trackers}
                             />
                         </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
         </div>
-    );
+    )
 }

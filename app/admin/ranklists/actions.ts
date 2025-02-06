@@ -35,11 +35,6 @@ export async function getRanklistsAction(params: PaginationParams = {}) {
     };
 }
 
-export async function getRanklistAction(id: string) {
-    return prisma.ranklist.findUnique({
-        where: { id },
-    });
-}
 
 export async function createRanklistAction(_: string, values: RanklistFormData) {
     try {

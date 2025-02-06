@@ -1,3 +1,4 @@
+// app/admin/ranklists/[id]/types.ts
 export type EventWithRelations = {
     id: string;
     title: string;
@@ -12,4 +13,11 @@ export type UserWithRelations = {
     username: string;
     image?: string | null;
     score?: number;
+};
+
+export type TrackerWithRelations = {
+    id: string;
+    title: string;
+    description?: string | null;
+    createdAt: Date;
 };
