@@ -7,13 +7,20 @@ import { Metadata } from 'next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ManageRanklists } from "../manage-ranklists";
 
-interface EditEventPageProps {
-    params: { id: string };
+type Props = {
+    params: Promise<{ id: string }> | { id: string };
 }
 
-export async function generateMetadata({ params }: EditEventPageProps): Promise<Metadata> {
-    const event = await getEventAction(params.id);
-    if (!event) return { title: 'Event Not Found' };
+export async function generateMetadata(
+    { params }: Props
+): Promise<Metadata> {
+    // Await the params
+    const resolvedParams = await params;
+    const event = await getEventAction(resolvedParams.id);
+
+    if (!event) {
+        return { title: 'Event Not Found' };
+    }
 
     return {
         title: `Edit Event - ${event.title}`,
@@ -21,10 +28,20 @@ export async function generateMetadata({ params }: EditEventPageProps): Promise<
     };
 }
 
-export default async function EditEventPage({ params }: EditEventPageProps) {
+export default async function EditEventPage(
+    { params }: Props
+) {
+    // Await the params
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+
+    if (!id) {
+        notFound();
+    }
+
     const [event, ranklists] = await Promise.all([
-        getEventAction(params.id),
-        getEventRanklists(params.id),
+        getEventAction(id),
+        getEventRanklists(id),
     ]);
 
     if (!event) {
@@ -56,7 +73,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
                                 initialData={event}
                                 action={updateEventAction}
                                 isEditing={true}
-                                eventId={params.id}
+                                eventId={id}
                             />
                         </CardContent>
                     </Card>
@@ -66,7 +83,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
                     <Card>
                         <CardContent className="pt-6">
                             <ManageRanklists
-                                eventId={params.id}
+                                eventId={id}
                                 initialRanklists={ranklists || []}
                             />
                         </CardContent>
