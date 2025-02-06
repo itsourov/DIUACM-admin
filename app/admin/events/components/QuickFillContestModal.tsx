@@ -1,7 +1,7 @@
 'use client';
 
-import {useState} from 'react';
-import {Button} from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -9,17 +9,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import {Input} from "@/components/ui/input";
-import {toast} from 'sonner';
-import {EventFormData} from "../schema";
-import {fetchContestData} from '../actions/fetch-contest-info';
+import { Input } from "@/components/ui/input";
+import { toast } from 'sonner';
+import { EventFormData } from "../schema";
+import { fetchContestData } from '../actions/fetch-contest-info';
 
 interface QuickFillContestModalProps {
     onFill: (data: EventFormData) => void;
     isEditing?: boolean;
 }
 
-export function QuickFillContestModal({onFill, isEditing = false}: QuickFillContestModalProps) {
+export function QuickFillContestModal({ onFill, isEditing = false }: QuickFillContestModalProps) {
     const [open, setOpen] = useState(false);
     const [contestLink, setContestLink] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +47,7 @@ export function QuickFillContestModal({onFill, isEditing = false}: QuickFillCont
             }
 
             if (result.data) {
+                // The data received from server is already in UTC
                 onFill(result.data);
                 setOpen(false);
                 setContestLink('');
@@ -74,7 +75,7 @@ export function QuickFillContestModal({onFill, isEditing = false}: QuickFillCont
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Input
-                            placeholder="Enter contest URL (Codeforces/VJudge)"
+                            placeholder="Enter contest URL (AtCoder/Codeforces/VJudge)"
                             value={contestLink}
                             onChange={(e) => setContestLink(e.target.value)}
                         />

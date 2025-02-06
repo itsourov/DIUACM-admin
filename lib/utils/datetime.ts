@@ -1,5 +1,3 @@
-// lib/utils/datetime.ts
-
 interface DateTimeOptions {
     includeSeconds?: boolean;
     includeTimezone?: boolean;
@@ -13,44 +11,43 @@ export class DateTime {
         format: 'display'
     };
 
-
     /**
-     * Convert UTC date to local datetime string for form inputs
+     * Converts a UTC ISO string or Date to local display format for inputs
+     * Only use this in client components
      */
     static utcToLocalInput(utcDate: Date | string): string {
         const date = new Date(utcDate);
         if (!this.isValid(date)) return '';
 
-        // Convert UTC to local
-        const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-        return localDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+        // Convert UTC to local time for display
+        const localDate = new Date(date);
+        return localDate.toLocaleDateString('en-CA') + 'T' +
+            localDate.toLocaleTimeString('en-GB').slice(0, 5);
+    }
+
+    /**
+     * Converts a local datetime input string to UTC Date
+     * Use this when sending data to the server
+     */
+    static localInputToUTC(localDateString: string): Date {
+        if (!localDateString) return new Date();
+
+        const date = new Date(localDateString);
+        if (!this.isValid(date)) return new Date();
+
+        return date;
     }
 
     static getCurrentUTCTime(): Date {
         return new Date();
     }
-    /**
-     * Convert local datetime string to UTC
-     */
-    static localInputToUTC(localDateString: string): Date {
-        if (!localDateString) return new Date();
-
-        // Create date object from local input
-        const date = new Date(localDateString);
-
-        // Convert to UTC
-        const utcDate = new Date(
-            date.getTime() + (date.getTimezoneOffset() * 60000)
-        );
-
-        return utcDate;
-    }
 
     /**
-     * Format a date for display in user's local timezone
+     * Formats a UTC date for display in local timezone
+     * Only use this in client components
      */
     static formatDisplay(date: Date | string, options: Partial<DateTimeOptions> = {}): string {
-        const opts = {...this.DEFAULT_OPTIONS, ...options};
+        const opts = { ...this.DEFAULT_OPTIONS, ...options };
         const dateObj = new Date(date);
 
         if (!this.isValid(dateObj)) {
@@ -77,13 +74,16 @@ export class DateTime {
         }
     }
 
-
     static getUserTimezone(): string {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        try {
+            return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch {
+            return 'UTC';
+        }
     }
 
-    static formatTimezoneOffset(date: Date = new Date()): string {
-        const offset = -date.getTimezoneOffset();
+    static formatTimezoneOffset(): string {
+        const offset = -new Date().getTimezoneOffset();
         const sign = offset >= 0 ? '+' : '-';
         const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, '0');
         const minutes = String(Math.abs(offset) % 60).padStart(2, '0');
@@ -93,11 +93,5 @@ export class DateTime {
     static isValid(date: Date | string): boolean {
         const dateObj = date instanceof Date ? date : new Date(date);
         return !isNaN(dateObj.getTime());
-    }
-
-    static compare(date1: string | Date, date2: string | Date): number {
-        const d1 = new Date(date1);
-        const d2 = new Date(date2);
-        return d1.getTime() - d2.getTime();
     }
 }

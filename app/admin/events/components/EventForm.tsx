@@ -38,10 +38,10 @@ export function EventForm({
             // Convert UTC dates to local for form inputs
             startDateTime: initialData?.startDateTime
                 ? DateTime.utcToLocalInput(initialData.startDateTime)
-                : DateTime.utcToLocalInput(DateTime.getCurrentUTCTime()),
+                : DateTime.utcToLocalInput(new Date().toISOString()),
             endDateTime: initialData?.endDateTime
                 ? DateTime.utcToLocalInput(initialData.endDateTime)
-                : DateTime.utcToLocalInput(new Date(DateTime.getCurrentUTCTime().getTime() + 3600000)), // +1 hour
+                : DateTime.utcToLocalInput(new Date(Date.now() + 3600000).toISOString()),
             contestLink: initialData?.contestLink ?? '',
             contestPassword: initialData?.contestPassword ?? '',
             openForAttendance: initialData?.openForAttendance ?? false,
@@ -53,7 +53,7 @@ export function EventForm({
     const onSubmit = async (data: EventFormData) => {
         setIsSubmitting(true);
         try {
-            // Convert local datetime strings to UTC before sending to server
+            // Ensure dates are in UTC ISO format for server
             const submissionData = {
                 ...data,
                 startDateTime: DateTime.localInputToUTC(data.startDateTime).toISOString(),
@@ -79,26 +79,31 @@ export function EventForm({
         }
     };
 
-    const handleQuickFill = (data: EventFormData) => {
-        // Update form with the fetched contest data
-        form.reset({
-            ...data,
-            title: decodeHTMLEntities(data.title),
-            // Ensure dates are in the correct format
-            startDateTime: DateTime.utcToLocalInput(new Date(data.startDateTime)),
-            endDateTime: DateTime.utcToLocalInput(new Date(data.endDateTime)),
-        });
-    };
-
     return (
         <Form {...form}>
             <QuickFillContestModal
-                onFill={handleQuickFill}
+                onFill={(data) => {
+                    form.reset({
+                        ...data,
+                        title: decodeHTMLEntities(data.title),
+                        // Convert UTC dates to local for form inputs
+                        startDateTime: DateTime.utcToLocalInput(data.startDateTime),
+                        endDateTime: DateTime.utcToLocalInput(data.endDateTime),
+                    });
+                }}
                 isEditing={isEditing}
             />
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="text-sm text-muted-foreground mb-4">
-                    All times are shown in your local timezone: {userTimezone} ({DateTime.formatTimezoneOffset()})
+                <div className="text-sm space-y-1">
+                    <div className="text-muted-foreground">
+                        All times are shown in your local timezone:
+                        <span className="font-semibold ml-1">
+                            {userTimezone} ({DateTime.formatTimezoneOffset()})
+                        </span>
+                    </div>
+                    <div className="text-muted-foreground/80 text-xs">
+                        Times will be automatically converted when saving
+                    </div>
                 </div>
 
                 <EventFormFields />
