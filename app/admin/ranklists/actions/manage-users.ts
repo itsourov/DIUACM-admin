@@ -1,5 +1,7 @@
-import {prisma} from "@/lib/prisma";
-import {revalidatePath} from "next/cache";
+'use server'
+
+import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function attachUser(ranklistId: string, userId: string, score: number) {
     try {
@@ -118,4 +120,3 @@ export async function getAvailableUsers(ranklistId: string, search: string, page
         }
     }
 }
-
