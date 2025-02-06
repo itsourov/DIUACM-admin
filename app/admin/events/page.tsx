@@ -1,5 +1,3 @@
-// app/admin/events/page.tsx
-
 import { Metadata } from 'next';
 import { getEventsAction } from './actions';
 import { EventsList } from './components/EventsList';
@@ -10,15 +8,18 @@ export const metadata: Metadata = {
 };
 
 interface EventsPageProps {
-    searchParams: {
+    searchParams: Promise<{
         page?: string;
         search?: string;
-    };
+    }>;
 }
 
 export default async function EventsPage({ searchParams }: EventsPageProps) {
-    const page = searchParams.page ? parseInt(searchParams.page) : 1;
-    const search = searchParams.search || '';
+    // Await the searchParams before using them
+    const resolvedParams = await searchParams;
+
+    const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1;
+    const search = resolvedParams.search || '';
 
     const { data: events, totalPages, currentPage } = await getEventsAction({
         page,

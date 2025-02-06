@@ -8,7 +8,7 @@ import { ManageRanklists } from "../manage-ranklists";
 import { Metadata } from 'next';
 
 interface EditEventPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 async function getEventData(id: string) {
@@ -61,7 +61,8 @@ async function getEventData(id: string) {
 }
 
 export async function generateMetadata({ params }: EditEventPageProps): Promise<Metadata> {
-    const data = await getEventData(params.id);
+    const resolvedParams = await params;
+    const data = await getEventData(resolvedParams.id);
     if (!data) return { title: 'Event Not Found' };
 
     return {
@@ -71,7 +72,8 @@ export async function generateMetadata({ params }: EditEventPageProps): Promise<
 }
 
 export default async function EditEventPage({ params }: EditEventPageProps) {
-    const data = await getEventData(params.id);
+    const resolvedParams = await params;
+    const data = await getEventData(resolvedParams.id);
 
     if (!data) {
         notFound();
@@ -104,7 +106,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
                                 initialData={event}
                                 action={updateEventAction}
                                 isEditing={true}
-                                eventId={params.id}
+                                eventId={resolvedParams.id}
                             />
                         </CardContent>
                     </Card>
