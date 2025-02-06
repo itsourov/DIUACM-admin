@@ -1,7 +1,7 @@
 'use server'
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import {prisma} from "@/lib/prisma";
+import {revalidatePath} from "next/cache";
 
 export async function attachUser(ranklistId: string, userId: string, score: number) {
     try {
@@ -116,7 +116,7 @@ export async function getAvailableUsers(ranklistId: string, search: string, page
             total: 0,
             pages: 1,
             currentPage: 1,
-            error: 'Failed to fetch available users'
+            error: 'Failed to fetch available users. ' + error
         }
     }
 }
