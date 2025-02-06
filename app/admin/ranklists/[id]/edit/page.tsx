@@ -1,22 +1,18 @@
-import { notFound } from "next/navigation"
-import { prisma } from "@/lib/prisma"
-import { ManageEvents } from "../manage-events"
-import { ManageUsers } from "../manage-users"
-import { ManageTrackers } from "../manage-trackers"
-import { EditRanklistDetails } from "../edit-ranklist"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {notFound} from "next/navigation"
+import {prisma} from "@/lib/prisma"
+import {ManageEvents} from "../manage-events"
+import {ManageUsers} from "../manage-users"
+import {ManageTrackers} from "../manage-trackers"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
+import {RanklistForm} from "@/app/admin/ranklists/components/RanklistForm";
+import {updateRanklistAction} from "@/app/admin/ranklists/actions";
 
 async function getRanklistData(id: string) {
     try {
         const [ranklist, users, events, trackers] = await Promise.all([
             prisma.ranklist.findUnique({
-                where: { id },
-                select: {
-                    id: true,
-                    title: true,
-                    keyword: true,
-                },
+                where: {id},
             }),
             prisma.user.findMany({
                 where: {
@@ -118,7 +114,7 @@ export default async function EditRanklistPage({
         notFound()
     }
 
-    const { ranklist, users, events, trackers } = data
+    const {ranklist, users, events, trackers} = data
 
     return (
         <div className="container py-6">
@@ -145,13 +141,17 @@ export default async function EditRanklistPage({
                 </TabsList>
 
                 <TabsContent value="details">
-                    <EditRanklistDetails
-                        ranklistId={ranklist.id}
-                        initialData={{
-                            title: ranklist.title,
-                            keyword: ranklist.keyword,
-                        }}
-                    />
+                    <Card>
+                        <CardContent className="pt-6">
+                            <RanklistForm
+                                initialData={ranklist}
+                                action={updateRanklistAction}
+                                isEditing={true}
+                                ranklistId={params.id}
+                            />
+                        </CardContent>
+                    </Card>
+
                 </TabsContent>
 
                 <TabsContent value="events">
