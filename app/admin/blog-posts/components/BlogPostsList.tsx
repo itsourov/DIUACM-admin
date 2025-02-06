@@ -28,9 +28,9 @@ interface BlogPostsListProps {
 }
 
 const STATUS_VARIANTS = {
-    PUBLISHED: 'success',
+    PUBLISHED: 'default', // Changed from 'success' to 'default'
     DRAFT: 'secondary',
-    PRIVATE: 'default'
+    PRIVATE: 'outline'    // Changed from 'default' to 'outline'
 } as const;
 
 export function BlogPostsList({ posts, totalPages, currentPage }: BlogPostsListProps) {
