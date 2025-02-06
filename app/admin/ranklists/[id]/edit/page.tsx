@@ -1,4 +1,3 @@
-// app/admin/ranklists/[id]/edit/page.tsx
 import {notFound} from "next/navigation"
 import {prisma} from "@/lib/prisma"
 import {ManageEvents} from "../manage-events"
@@ -8,6 +7,10 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {RanklistForm} from "@/app/admin/ranklists/components/RanklistForm";
 import {updateRanklistAction} from "@/app/admin/ranklists/actions";
+
+interface EditRanklistPageProps {
+    params: Promise<{ id: string }>;
+}
 
 async function getRanklistData(id: string) {
     try {
@@ -104,12 +107,9 @@ async function getRanklistData(id: string) {
     }
 }
 
-export default async function EditRanklistPage({
-                                                   params,
-                                               }: {
-    params: { id: string }
-}) {
-    const data = await getRanklistData(params.id)
+export default async function EditRanklistPage({ params }: EditRanklistPageProps) {
+    const resolvedParams = await params;
+    const data = await getRanklistData(resolvedParams.id);
 
     if (!data) {
         notFound()
@@ -148,11 +148,10 @@ export default async function EditRanklistPage({
                                 initialData={ranklist}
                                 action={updateRanklistAction}
                                 isEditing={true}
-                                ranklistId={params.id}
+                                ranklistId={resolvedParams.id}
                             />
                         </CardContent>
                     </Card>
-
                 </TabsContent>
 
                 <TabsContent value="events">

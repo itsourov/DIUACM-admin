@@ -1,5 +1,3 @@
-// app/admin/users/page.tsx
-
 import { Metadata } from 'next';
 import { getUsersAction } from './actions';
 import { UsersList } from './components/UsersList';
@@ -10,15 +8,18 @@ export const metadata: Metadata = {
 };
 
 interface UsersPageProps {
-    searchParams: {
+    searchParams: Promise<{
         page?: string;
         search?: string;
-    };
+    }>;
 }
 
 export default async function UsersPage({ searchParams }: UsersPageProps) {
-    const page = searchParams.page ? parseInt(searchParams.page) : 1;
-    const search = searchParams.search || '';
+    // Await the searchParams before using them
+    const resolvedParams = await searchParams;
+
+    const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1;
+    const search = resolvedParams.search || '';
 
     const { data: users, totalPages, currentPage } = await getUsersAction({
         page,

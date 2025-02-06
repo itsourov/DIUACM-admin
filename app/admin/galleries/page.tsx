@@ -1,4 +1,3 @@
-// app/admin/galleries/page.tsx
 import { Metadata } from 'next';
 import { getGalleriesAction } from './actions';
 import { GalleriesList } from './components/GalleriesList';
@@ -9,15 +8,18 @@ export const metadata: Metadata = {
 };
 
 interface GalleriesPageProps {
-    searchParams: {
+    searchParams: Promise<{
         page?: string;
         search?: string;
-    };
+    }>;
 }
 
 export default async function GalleriesPage({ searchParams }: GalleriesPageProps) {
-    const page = searchParams.page ? parseInt(searchParams.page) : 1;
-    const search = searchParams.search || '';
+    // Await the searchParams before using them
+    const resolvedParams = await searchParams;
+
+    const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1;
+    const search = resolvedParams.search || '';
 
     const { data: galleries, totalPages, currentPage } = await getGalleriesAction({
         page,

@@ -1,6 +1,6 @@
-import { Metadata } from 'next';
-import { getTrackersAction } from './actions';
-import { TrackersList } from './components/TrackersList';
+import {Metadata} from 'next';
+import {getTrackersAction} from './actions';
+import {TrackersList} from './components/TrackersList';
 
 export const metadata: Metadata = {
     title: 'Trackers Management',
@@ -8,17 +8,20 @@ export const metadata: Metadata = {
 };
 
 interface TrackersPageProps {
-    searchParams: {
+    searchParams: Promise<{
         page?: string;
         search?: string;
-    };
+    }>;
 }
 
-export default async function TrackersPage({ searchParams }: TrackersPageProps) {
-    const page = searchParams.page ? parseInt(searchParams.page) : 1;
-    const search = searchParams.search || '';
+export default async function TrackersPage({searchParams}: TrackersPageProps) {
+    // Await the searchParams before using them
+    const resolvedParams = await searchParams;
 
-    const { data: trackers, totalPages, currentPage } = await getTrackersAction({
+    const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1;
+    const search = resolvedParams.search || '';
+
+    const {data: trackers, totalPages, currentPage} = await getTrackersAction({
         page,
         search,
     });

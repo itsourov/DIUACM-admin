@@ -5,11 +5,12 @@ import { getTrackerAction, updateTrackerAction } from "../../actions";
 import { Metadata } from 'next';
 
 interface EditTrackerPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: EditTrackerPageProps): Promise<Metadata> {
-    const tracker = await getTrackerAction(params.id);
+    const resolvedParams = await params;
+    const tracker = await getTrackerAction(resolvedParams.id);
     if (!tracker) return { title: 'Tracker Not Found' };
 
     return {
@@ -19,7 +20,8 @@ export async function generateMetadata({ params }: EditTrackerPageProps): Promis
 }
 
 export default async function EditTrackerPage({ params }: EditTrackerPageProps) {
-    const tracker = await getTrackerAction(params.id);
+    const resolvedParams = await params;
+    const tracker = await getTrackerAction(resolvedParams.id);
 
     if (!tracker) {
         notFound();
@@ -36,7 +38,7 @@ export default async function EditTrackerPage({ params }: EditTrackerPageProps) 
                         initialData={tracker}
                         action={updateTrackerAction}
                         isEditing={true}
-                        trackerId={params.id}
+                        trackerId={resolvedParams.id}
                     />
                 </CardContent>
             </Card>

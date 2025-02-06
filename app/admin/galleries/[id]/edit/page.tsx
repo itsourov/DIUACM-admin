@@ -1,4 +1,3 @@
-// app/admin/galleries/[id]/edit/page.tsx
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
 import { GalleryForm } from "../../components/GalleryForm";
@@ -8,11 +7,12 @@ import { Metadata } from 'next';
 import { Separator } from '@/components/ui/separator';
 
 interface EditGalleryPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: EditGalleryPageProps): Promise<Metadata> {
-    const gallery = await getGalleryAction(params.id);
+    const resolvedParams = await params;
+    const gallery = await getGalleryAction(resolvedParams.id);
     if (!gallery) return { title: 'Gallery Not Found' };
 
     return {
@@ -22,7 +22,8 @@ export async function generateMetadata({ params }: EditGalleryPageProps): Promis
 }
 
 export default async function EditGalleryPage({ params }: EditGalleryPageProps) {
-    const gallery = await getGalleryAction(params.id);
+    const resolvedParams = await params;
+    const gallery = await getGalleryAction(resolvedParams.id);
 
     if (!gallery) {
         notFound();
@@ -39,7 +40,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
                         initialData={gallery}
                         action={updateGalleryAction}
                         isEditing={true}
-                        galleryId={params.id}
+                        galleryId={resolvedParams.id}
                     />
                 </CardContent>
             </Card>
@@ -52,7 +53,7 @@ export default async function EditGalleryPage({ params }: EditGalleryPageProps) 
                 </CardHeader>
                 <CardContent>
                     <GalleryImages
-                        galleryId={params.id}
+                        galleryId={resolvedParams.id}
                         images={gallery.images}
                     />
                 </CardContent>

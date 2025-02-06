@@ -1,5 +1,3 @@
-// app/admin/users/[id]/edit/page.tsx
-
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
 import { UserForm } from "@/app/admin/users/components/UserForm";
@@ -7,11 +5,12 @@ import { getUserAction, updateUserAction } from "@/app/admin/users/actions";
 import { Metadata } from 'next';
 
 interface EditUserPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export async function generateMetadata({ params }: EditUserPageProps): Promise<Metadata> {
-    const user = await getUserAction(params.id);
+    const resolvedParams = await params;
+    const user = await getUserAction(resolvedParams.id);
     if (!user) return { title: 'User Not Found' };
 
     return {
@@ -21,7 +20,8 @@ export async function generateMetadata({ params }: EditUserPageProps): Promise<M
 }
 
 export default async function EditUserPage({ params }: EditUserPageProps) {
-    const user = await getUserAction(params.id);
+    const resolvedParams = await params;
+    const user = await getUserAction(resolvedParams.id);
 
     if (!user) {
         notFound();
@@ -38,7 +38,7 @@ export default async function EditUserPage({ params }: EditUserPageProps) {
                         initialData={user}
                         action={updateUserAction}
                         isEditing={true}
-                        userId={params.id}
+                        userId={resolvedParams.id}
                     />
                 </CardContent>
             </Card>
