@@ -1,6 +1,6 @@
 // lib/s3.ts
-import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3"
-import { randomUUID } from "crypto"
+import {S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand} from "@aws-sdk/client-s3"
+import {randomUUID} from "crypto"
 
 // Define allowed mime types and their extensions
 export const ALLOWED_FILE_TYPES = {
@@ -119,7 +119,7 @@ class S3Service {
             },
         }
 
-        const finalOptions = { ...defaultOptions, ...options }
+        const finalOptions = {...defaultOptions, ...options}
 
         try {
             // Validate file
@@ -178,7 +178,7 @@ class S3Service {
                     })
                 )
             } catch (error) {
-                console.warn(`File ${key} does not exist in bucket`)
+                console.warn(`File ${key} does not exist in bucket. ` + error)
                 return
             }
 

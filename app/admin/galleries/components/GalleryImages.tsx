@@ -1,16 +1,16 @@
 // app/admin/galleries/components/GalleryImages.tsx
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { type Image as PrismaImage } from "@prisma/client"
-import { DragDropContext, Draggable, DropResult, Droppable } from "@hello-pangea/dnd"
-import { useDropzone } from "react-dropzone"
-import { ImagePlus, X, Pencil } from "lucide-react"
-import { toast } from "sonner"
+import {useState, useCallback, useEffect} from "react"
+import {type Image as PrismaImage} from "@prisma/client"
+import {DragDropContext, Draggable, DropResult, Droppable} from "@hello-pangea/dnd"
+import {useDropzone} from "react-dropzone"
+import {ImagePlus, X, Pencil} from "lucide-react"
+import {toast} from "sonner"
 import Image from "next/image"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import {cn} from "@/lib/utils"
+import {Button} from "@/components/ui/button"
 import {
     Card,
     CardContent,
@@ -32,11 +32,11 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
+import {Input} from "@/components/ui/input"
+import {Label} from "@/components/ui/label"
+import {Progress} from "@/components/ui/progress"
 
-import { uploadImages, deleteImage, updateImageOrder, updateImageAlt } from "../actions"
+import {uploadImages, deleteImage, updateImageOrder, updateImageAlt} from "../actions"
 
 interface GalleryImagesProps {
     galleryId: string
@@ -57,7 +57,7 @@ const ALLOWED_FILE_TYPES = {
     'image/webp': ['.webp']
 }
 
-export function GalleryImages({ galleryId, images: initialImages }: GalleryImagesProps) {
+export function GalleryImages({galleryId, images: initialImages}: GalleryImagesProps) {
     const [images, setImages] = useState<PrismaImage[]>(initialImages)
     const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([])
     const [deleteImageId, setDeleteImageId] = useState<string | null>(null)
@@ -102,7 +102,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                 setUploadingFiles(prev =>
                     prev.map(f =>
                         f.id === uploadingFile.id
-                            ? { ...f, progress: 10 }
+                            ? {...f, progress: 10}
                             : f
                     )
                 )
@@ -121,7 +121,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                 setUploadingFiles(prev =>
                     prev.map(f =>
                         f.id === uploadingFile.id
-                            ? { ...f, progress: 100 }
+                            ? {...f, progress: 100}
                             : f
                     )
                 )
@@ -141,7 +141,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
 
                 toast.success(`${uploadingFile.file.name} uploaded successfully`)
             } catch (error) {
-                toast.error(`Failed to upload ${uploadingFile.file.name}`)
+                toast.error(`Failed to upload ${uploadingFile.file.name}. ` + error)
                 setUploadingFiles(prev =>
                     prev.filter(f => f.id !== uploadingFile.id)
                 )
@@ -150,7 +150,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
         }
     }, [galleryId])
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    const {getRootProps, getInputProps, isDragActive} = useDropzone({
         onDrop,
         accept: ALLOWED_FILE_TYPES,
         disabled: uploadingFiles.length > 0,
@@ -185,7 +185,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
             } else {
                 setImages(images.map(img =>
                     img.id === editingImage.id
-                        ? { ...img, alt: newAltText }
+                        ? {...img, alt: newAltText}
                         : img
                 ))
                 toast.success(result.success)
@@ -250,7 +250,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                         <ImagePlus className={cn(
                             "h-6 w-6",
                             isDragActive ? "text-primary" : "text-muted-foreground"
-                        )} />
+                        )}/>
                     </div>
                     {uploadingFiles.length > 0 ? (
                         <p className="text-sm font-medium">Uploading images...</p>
@@ -284,7 +284,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm truncate">{file.file.name}</p>
-                                    <Progress value={file.progress} className="h-2" />
+                                    <Progress value={file.progress} className="h-2"/>
                                 </div>
                             </div>
                         </div>
@@ -331,7 +331,8 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                                                     fill
                                                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                                <div
+                                                    className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-all duration-200">
                                                     <div className="absolute top-2 right-2 flex gap-2">
                                                         <Button
                                                             variant="secondary"
@@ -343,7 +344,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                                                                 setNewAltText(image.alt || '')
                                                             }}
                                                         >
-                                                            <Pencil className="h-4 w-4" />
+                                                            <Pencil className="h-4 w-4"/>
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
@@ -354,7 +355,7 @@ export function GalleryImages({ galleryId, images: initialImages }: GalleryImage
                                                                 setDeleteImageId(image.id)
                                                             }}
                                                         >
-                                                            <X className="h-4 w-4" />
+                                                            <X className="h-4 w-4"/>
                                                         </Button>
                                                     </div>
                                                     {image.alt && (
