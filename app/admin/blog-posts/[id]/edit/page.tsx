@@ -1,17 +1,16 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { notFound } from 'next/navigation';
-import { BlogPostForm } from "../../components/BlogPostForm";
-import { getBlogPostAction, updateBlogPostAction } from "../../actions";
-
+import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {notFound} from 'next/navigation';
+import {BlogPostForm} from "../../components/BlogPostForm";
+import {getBlogPostAction, updateBlogPostAction} from "../../actions";
 
 interface EditBlogPostPageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
-
-
-export default async function EditBlogPostPage({ params }: EditBlogPostPageProps) {
-    const post = await getBlogPostAction(params.id);
+export default async function EditBlogPostPage({params}: EditBlogPostPageProps) {
+    // Wait for params to resolve
+    const resolvedParams = await params;
+    const post = await getBlogPostAction(resolvedParams.id);
 
     if (!post) {
         notFound();
@@ -28,7 +27,7 @@ export default async function EditBlogPostPage({ params }: EditBlogPostPageProps
                         initialData={post}
                         action={updateBlogPostAction}
                         isEditing={true}
-                        postId={params.id}
+                        postId={resolvedParams.id}
                     />
                 </CardContent>
             </Card>
