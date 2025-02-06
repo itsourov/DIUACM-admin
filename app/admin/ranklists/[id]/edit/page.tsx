@@ -1,19 +1,18 @@
 // app/admin/ranklists/[id]/edit/page.tsx
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { notFound } from 'next/navigation';
-import { RanklistForm } from "../../components/RanklistForm";
-import { getRanklistAction, updateRanklistAction } from "../../actions";
-import { getRanklistWithEvents, getEvents } from '../actions';
-import { EventManager } from '../components/event-manager';
-import { Metadata } from 'next';
+import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {notFound} from 'next/navigation';
+import {RanklistForm} from "../../components/RanklistForm";
+import {getRanklistAction, updateRanklistAction} from "../../actions";
+
+import {Metadata} from 'next';
 
 interface EditRanklistPageProps {
     params: { id: string };
 }
 
-export async function generateMetadata({ params }: EditRanklistPageProps): Promise<Metadata> {
+export async function generateMetadata({params}: EditRanklistPageProps): Promise<Metadata> {
     const ranklist = await getRanklistAction(params.id);
-    if (!ranklist) return { title: 'Ranklist Not Found' };
+    if (!ranklist) return {title: 'Ranklist Not Found'};
 
     return {
         title: `Edit Ranklist - ${ranklist.title}`,
@@ -21,17 +20,12 @@ export async function generateMetadata({ params }: EditRanklistPageProps): Promi
     };
 }
 
-export default async function EditRanklistPage({ params }: EditRanklistPageProps) {
+export default async function EditRanklistPage({params}: EditRanklistPageProps) {
     const ranklist = await getRanklistAction(params.id);
 
     if (!ranklist) {
         notFound();
     }
-
-    const [{ selectedEvents }, availableEvents] = await Promise.all([
-        getRanklistWithEvents(params.id),
-        getEvents({ page: 1, limit: 10 })
-    ]);
 
     return (
         <div className="container mx-auto py-6 space-y-6">
@@ -49,18 +43,7 @@ export default async function EditRanklistPage({ params }: EditRanklistPageProps
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Manage Events</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <EventManager
-                        ranklistId={params.id}
-                        initialEvents={selectedEvents}
-                        initialAvailableEvents={availableEvents}
-                    />
-                </CardContent>
-            </Card>
+           
         </div>
     );
 }
