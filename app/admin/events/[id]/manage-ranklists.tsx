@@ -66,6 +66,11 @@ export function ManageRanklists({
 
     const loadAvailableRanklists = async () => {
         startTransition(async () => {
+            toast({
+                title: " loading ranklists",
+                description: "loading",
+                variant: "destructive"
+            })
             const result = await getAvailableRanklists(eventId, search, page)
             if (result.success) {
                 setAvailableRanklists(result.ranklists)

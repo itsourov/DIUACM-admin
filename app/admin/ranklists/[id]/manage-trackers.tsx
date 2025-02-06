@@ -13,7 +13,7 @@ import {Input} from "@/components/ui/input"
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {useState, useTransition, useMemo, useCallback, useEffect} from "react"
 import {TrackerWithRelations} from "./types"
-import {attachTracker, detachTracker, getAvailableTrackers} from "./actions"
+import {attachTracker, detachTracker, getAvailableTrackers} from "../actions/manage-tracker"
 import {useToast} from "@/hooks/use-toast"
 import {format} from "date-fns"
 
