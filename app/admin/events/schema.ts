@@ -1,8 +1,8 @@
 // app/admin/events/schema.ts
 
-import { z } from 'zod';
-import { Event, EventStatus, EventType, AttendanceScope } from '@prisma/client';
-import { DateTime } from '@/lib/utils/datetime';
+import {z} from 'zod';
+import {Event, EventStatus, EventType, AttendanceScope} from '@prisma/client';
+import {DateTime} from '@/lib/utils/datetime';
 
 export const eventFormSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -19,7 +19,7 @@ export const eventFormSchema = z.object({
     (data) => {
         return DateTime.isValid(data.startDateTime) &&
             DateTime.isValid(data.endDateTime) &&
-            DateTime.compare(data.endDateTime, data.startDateTime) > 0;
+            data.endDateTime > data.startDateTime;
     },
     {
         message: "End date must be after start date and dates must be valid",
