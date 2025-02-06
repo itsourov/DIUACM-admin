@@ -26,6 +26,9 @@ export class DateTime {
         return localDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
     }
 
+    static getCurrentUTCTime(): Date {
+        return new Date();
+    }
     /**
      * Convert local datetime string to UTC
      */
