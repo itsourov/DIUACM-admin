@@ -1,5 +1,3 @@
-// app/admin/events/components/EventForm.tsx
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -11,23 +9,30 @@ import { Form } from '@/components/ui/form';
 import { Button } from "@/components/ui/button";
 import { EventFormFields } from './EventFormFields';
 import { Loader2 } from 'lucide-react';
-import { EventFormData, EventFormProps, eventFormSchema } from "@/app/admin/events/schema";
+import {
+    EventFormData,
+    EventFormProps,
+    eventFormSchema
+} from "@/app/admin/events/schema";
 import { DateTime } from '@/lib/utils/datetime';
+import { QuickFillContestModal } from './QuickFillContestModal';
+import { decodeHTMLEntities } from '@/lib/utils/html';
 
 export function EventForm({
                               initialData,
                               action,
-                              isEditing,
+                              isEditing = false,
                               eventId = '',
                           }: EventFormProps) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const userTimezone = DateTime.getUserTimezone();
 
+    // Initialize form with default values
     const form = useForm<EventFormData>({
         resolver: zodResolver(eventFormSchema),
         defaultValues: {
-            title: initialData?.title ?? '',
+            title: decodeHTMLEntities(initialData?.title ?? ''),
             description: initialData?.description ?? '',
             status: initialData?.status ?? 'DRAFT',
             // Convert UTC dates to local for form inputs
@@ -74,8 +79,23 @@ export function EventForm({
         }
     };
 
+    const handleQuickFill = (data: EventFormData) => {
+        // Update form with the fetched contest data
+        form.reset({
+            ...data,
+            title: decodeHTMLEntities(data.title),
+            // Ensure dates are in the correct format
+            startDateTime: DateTime.utcToLocalInput(new Date(data.startDateTime)),
+            endDateTime: DateTime.utcToLocalInput(new Date(data.endDateTime)),
+        });
+    };
+
     return (
         <Form {...form}>
+            <QuickFillContestModal
+                onFill={handleQuickFill}
+                isEditing={isEditing}
+            />
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <div className="text-sm text-muted-foreground mb-4">
                     All times are shown in your local timezone: {userTimezone} ({DateTime.formatTimezoneOffset()})
@@ -90,7 +110,7 @@ export function EventForm({
                         className="w-full sm:w-auto"
                     >
                         {isSubmitting && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
                         )}
                         {isEditing ? 'Update' : 'Create'} Event
                     </Button>
