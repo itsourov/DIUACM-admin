@@ -1,13 +1,14 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import type {Metadata} from 'next';
+import {Inter} from 'next/font/google';
 import './globals.css';
-import { ThemeProvider } from '@/providers/ThemeProvider';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Toaster2 } from 'sonner';
-import React from "react";
+import {ThemeProvider} from '@/providers/ThemeProvider';
+import Navbar from '@/components/Navbar';
+import {Toaster} from "@/components/ui/toaster";
+import {Toaster as Toaster2} from 'sonner';
+import {SessionProvider} from "next-auth/react";
 
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({subsets: ['latin']});
 
 export const metadata: Metadata = {
     title: 'DIU ACM',
@@ -28,13 +29,14 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
-
-            <main>
-                {children}
-            </main>
-            <Toaster />
-            <Toaster2 richColors />
-
+            <SessionProvider>
+                <Navbar/>
+                <main className="pt-16">
+                    {children}
+                </main>
+                <Toaster/>
+                <Toaster2 richColors/>
+            </SessionProvider>
         </ThemeProvider>
         </body>
         </html>
