@@ -44,7 +44,7 @@ export default function FullscreenViewer({
     const [isFavorite, setIsFavorite] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+    const controlsTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const touchStartRef = useRef<{ x: number; y: number }>({x: 0, y: 0});
 
     useEffect(() => {
@@ -335,8 +335,8 @@ export default function FullscreenViewer({
                                     <ZoomOut className="w-5 h-5"/>
                                 </button>
                                 <span className="text-white/90 min-w-[4rem] text-center">
-                  {Math.round(scale * 100)}%
-                </span>
+                                    {Math.round(scale * 100)}%
+                                </span>
                                 <button
                                     onClick={() => handleZoom('in')}
                                     className="p-2 text-white/90 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
