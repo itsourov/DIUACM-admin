@@ -1,6 +1,6 @@
 'use client'
 
-import { EventWithRelations } from './types'
+import { EventWithRelations } from '../types'
 import { useState, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
@@ -64,7 +64,7 @@ export default function EventList({
                 <div className="flex flex-col sm:flex-row gap-3">
                     {/* Search Input */}
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4"/>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
                             placeholder="Search events..."
                             value={search}
@@ -91,7 +91,7 @@ export default function EventList({
                             size="sm"
                             className="w-full sm:w-auto h-10 px-4 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
                         >
-                            <RefreshCw className="w-4 h-4 mr-2"/>
+                            <RefreshCw className="w-4 h-4 mr-2" />
                             Reset
                         </Button>
                     </div>
@@ -127,8 +127,8 @@ export default function EventList({
                                                     startDateTime={event.startDateTime}
                                                     endDateTime={event.endDateTime}
                                                 />
-                                                <EventTypeBadge type={event.type}/>
-                                                <AttendanceScopeBadge scope={event.attendanceScope}/>
+                                                <EventTypeBadge type={event.type} />
+                                                <AttendanceScopeBadge scope={event.attendanceScope} />
                                             </div>
                                             <h3 className="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                 {event.title}
@@ -143,13 +143,13 @@ export default function EventList({
                                         {/* Event Time */}
                                         <div className="flex flex-col md:items-end gap-2">
                                             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                                                <Calendar className="w-4 h-4 flex-shrink-0"/>
+                                                <Calendar className="w-4 h-4 flex-shrink-0" />
                                                 <span className="text-sm whitespace-nowrap">
                                                     {DateTime.formatDisplay(event.startDateTime)}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                                                <Clock className="w-4 h-4 flex-shrink-0"/>
+                                                <Clock className="w-4 h-4 flex-shrink-0" />
                                                 <span className="text-sm whitespace-nowrap">
                                                     {getDuration(event.startDateTime, event.endDateTime)}
                                                 </span>
@@ -158,7 +158,7 @@ export default function EventList({
 
                                         <div
                                             className="hidden md:flex items-center text-gray-400 group-hover:text-blue-600 dark:text-gray-500 dark:group-hover:text-blue-400">
-                                            <ArrowRight className="w-6 h-6"/>
+                                            <ArrowRight className="w-6 h-6" />
                                         </div>
                                     </div>
                                 </div>
@@ -168,7 +168,7 @@ export default function EventList({
                 ) : (
                     <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
                         <div className="text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50"/>
+                            <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
                             <h3 className="text-lg font-semibold mb-2">No events found</h3>
                             <p className="text-sm">
                                 {search
@@ -198,7 +198,7 @@ export default function EventList({
                         </Button>
 
                         <div className="hidden sm:flex gap-2">
-                            {Array.from({length: Math.min(5, totalPages)}, (_, i) => {
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                 const pageNum = currentPage <= 3
                                     ? i + 1
                                     : currentPage + i - 2

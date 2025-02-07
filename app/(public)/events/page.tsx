@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import EventList from './EventList'
+import EventList from './components/EventList'
 import { getEvents } from './actions'
 import { SearchParams } from './types'
 
@@ -53,7 +53,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
             <section className="py-8 md:py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <EventList 
+                    <EventList
                         initialEvents={events}
                         totalPages={totalPages}
                         currentPage={page}
