@@ -51,7 +51,7 @@
                                 See Leaderboard
                                 <i data-lucide="arrow-right" class="w-5 h-5 transition-transform group-hover:translate-x-1"></i>
                             </button>
-                            <a href="{{ route('events') }}" class="w-full sm:w-auto px-8 py-4
+                            <a href="{{ route('events.index') }}" class="w-full sm:w-auto px-8 py-4
                                 text-gray-900 dark:text-white rounded-2xl font-medium
                                 flex items-center justify-center gap-2 group
                                 transition-all duration-300
@@ -59,7 +59,8 @@
                                 hover:bg-gray-200 dark:hover:bg-gray-700
                                 hover:scale-105">
                                 Participate Events
-                                <i data-lucide="chevron-right" class="w-5 h-5 transition-transform group-hover:translate-x-1"></i>
+                                <i data-lucide="chevron-right"
+                                   class="w-5 h-5 transition-transform group-hover:translate-x-1"></i>
                             </a>
                         </div>
                     </div>

@@ -7,7 +7,7 @@
         ],
         [
             'name' => 'Events',
-            'route' => 'events',
+            'route' => 'events.index',
             'icon' => 'calendar'
         ],
         [
@@ -28,7 +28,8 @@
     ];
 @endphp
 
-<nav class="fixed w-full z-50 top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors duration-150">
+<nav
+    class="fixed w-full z-50 top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 transition-colors duration-150">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <!-- Logo -->
@@ -80,7 +81,8 @@
                                      alt="{{ Auth::user()->name }}"
                                      class="h-7 w-7 rounded-full">
                             @else
-                                <div class="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                                <div
+                                    class="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
                                     {{ substr(Auth::user()->name, 0, 1) }}
                                 </div>
                             @endif
@@ -148,7 +150,8 @@
                                  alt="{{ Auth::user()->name }}"
                                  class="h-10 w-10 rounded-full">
                         @else
-                            <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+                            <div
+                                class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
                                 {{ substr(Auth::user()->name, 0, 1) }}
                             </div>
                         @endif

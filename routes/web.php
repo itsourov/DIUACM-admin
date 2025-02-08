@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/events', [EventController::class, 'index'])->name('events');
+Route::get('/events', [EventController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventController::class, 'index'])->name('events.show');
+
 Route::get('trackers', [EventController::class, 'index'])->name('trackers');
 Route::get('/blog', [EventController::class, 'index'])->name('blog');
 Route::get('/gallery', [EventController::class, 'index'])->name('gallery');
