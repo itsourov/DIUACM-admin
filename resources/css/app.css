@@ -19,6 +19,8 @@
 }
 
 
+
+
 /* Add smooth transition for theme switching */
 :root {
     --transition-duration: 0.15s;

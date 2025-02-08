@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->enum('status', VisibilityStatuses::toArray())->default(VisibilityStatuses::DRAFT);
             $table->dateTime('starting_at');
             $table->dateTime('ending_at');
-            $table->string('event_link')->nullable()->unique();
+            $table->string('event_link')->nullable();
             $table->string('event_password')->nullable();
             $table->boolean('open_for_attendance');
             $table->enum('type', EventTypes::toArray())->default(EventTypes::CONTEST);

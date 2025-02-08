@@ -25,6 +25,7 @@ class OldDataSeeder extends Seeder
         // Read and decode JSON file
         $jsonData = File::get($jsonPath);
         $events = json_decode($jsonData, true);
+        $events = $events[2]['data'];
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->command->error('Error parsing JSON file!');
@@ -36,6 +37,20 @@ class OldDataSeeder extends Seeder
 
         foreach ($events as $eventData) {
             try {
+
+                Event::create(
+                    [
+                        'title' => $eventData['title'],
+                        'description' => $eventData['description'],
+                        'starting_at' => $eventData['starting_time'],
+                        'ending_at' => $eventData['ending_time'],
+                        'event_link' => $eventData['contest_link'],
+                        'event_password' => $eventData['password'],
+                        'open_for_attendance' => $eventData['open_for_attendance'],
+                        'type' => $eventData['type'],
+                        'status' => $eventData['visibility'],
+                    ]
+                );
 
 
                 $count++;
