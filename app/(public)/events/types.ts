@@ -1,31 +1,10 @@
-import type { Event, Ranklist, ContestStatOfUser, EventsOnRanklists } from '@prisma/client'
+// app/events/types.ts
+export type EventType = 'CLASS' | 'CONTEST' | 'MEETING' | 'ALL';
 
-// Add explicit type exports
-export type EventWithRelations = Event & {
-    ranklists: (EventsOnRanklists & {
-        ranklist: Ranklist
-    })[]
-    contestStats: ContestStatOfUser[]
-    _count: {
-        contestStats: number
-    }
-}
-
-export interface EventsResponse {
-    events: EventWithRelations[]
-    total: number
-    totalPages: number
-}
-
-export interface EventListProps {
-    initialEvents: EventWithRelations[]
-    totalPages: number
-    currentPage: number
-    totalEvents: number
-    initialSearch: string
-}
-
-export interface SearchParams {
-    page?: string
-    q?: string
+export interface EventsSearchParams {
+    query?: string | null;
+    type?: EventType | null;
+    startDate?: string | null;
+    endDate?: string | null;
+    page?: number;
 }

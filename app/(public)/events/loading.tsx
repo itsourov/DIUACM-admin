@@ -1,70 +1,67 @@
-import { Skeleton } from "@/components/ui/skeleton"
-
-export default function LoadingEvents() {
+// app/events/loading.tsx
+export default function Loading() {
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* Hero Section Skeleton */}
-            <section className="relative py-16 md:py-20 bg-gradient-to-b from-blue-50 to-gray-100 dark:from-blue-950/50 dark:to-gray-900">
+            <section className="relative py-20 bg-gradient-to-b from-blue-50/20 to-transparent dark:from-blue-900/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-3xl mx-auto">
-                        <Skeleton className="h-10 w-64 mx-auto mb-4" />
-                        <Skeleton className="h-6 w-96 mx-auto" />
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                            Events
+                        </h1>
+                        <p className="text-lg text-gray-600 dark:text-gray-400">
+                            Browse and search through our events
+                        </p>
                     </div>
                 </div>
             </section>
 
-            <section className="py-8 md:py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-                    {/* Search Bar Skeleton */}
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <Skeleton className="h-10 flex-1" />
-                            <div className="flex gap-2">
-                                <Skeleton className="h-10 w-24" />
-                                <Skeleton className="h-10 w-24" />
-                            </div>
-                        </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                {/* Search Form Skeleton */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-10 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
+                        <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
                     </div>
+                </div>
 
-                    {/* Event Cards Skeleton */}
-                    <div className="space-y-4">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <div 
-                                key={i}
-                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6"
-                            >
-                                <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <Skeleton className="h-6 w-24" />
-                                            <Skeleton className="h-6 w-20" />
-                                            <Skeleton className="h-6 w-20" />
-                                        </div>
-                                        <Skeleton className="h-7 w-3/4 mb-2" />
-                                        <Skeleton className="h-4 w-full max-w-2xl" />
-                                    </div>
-                                    <div className="flex flex-col md:items-end gap-2">
-                                        <Skeleton className="h-5 w-32" />
-                                        <Skeleton className="h-5 w-24" />
-                                    </div>
+                {/* Event Cards Skeleton */}
+                <div className="mt-8 space-y-4">
+                    {[...Array(5)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+                        >
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="h-6 w-2/3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    <div className="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <div className="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                                    <div className="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                                 </div>
                             </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Pagination Skeleton */}
+                <div className="mt-8 flex justify-between items-center bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                    <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="hidden sm:flex gap-2">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                         ))}
                     </div>
-
-                    {/* Pagination Skeleton */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                        <Skeleton className="h-5 w-48" />
-                        <div className="flex gap-2">
-                            <Skeleton className="h-10 w-24" />
-                            <Skeleton className="h-10 w-10" />
-                            <Skeleton className="h-10 w-10" />
-                            <Skeleton className="h-10 w-10" />
-                            <Skeleton className="h-10 w-24" />
-                        </div>
-                    </div>
+                    <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 </div>
-            </section>
+            </div>
         </div>
-    )
+    );
 }

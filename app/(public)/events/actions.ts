@@ -1,79 +1,45 @@
-'use server'
+// app/events/actions.ts
+'use server';
 
-import {prisma} from '@/lib/prisma'
-import {Prisma, EventStatus} from '@prisma/client'
-import {EventsResponse} from './types'
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import { EventsSearchParams } from './types';
 
-export async function getEvents(
-    page: number,
-    search: string,
-): Promise<EventsResponse | null> {
-    try {
-        const limit = 10
-        const skip = (page - 1) * limit
+export async function getEvents(params: EventsSearchParams) {
+    const page = params.page || 1;
+    const perPage = 10;
 
-        const conditions: Prisma.EventWhereInput[] = [
-            {status: EventStatus.PUBLISHED},
-        ]
-
-        if (search) {
-            conditions.push({
+    const where = {
+        AND: [
+            params.query ? {
                 OR: [
-                    {
-                        title: {
-                            contains: search,
-                            mode: Prisma.QueryMode.insensitive
-                        }
-                    },
-                    {
-                        description: {
-                            contains: search,
-                            mode: Prisma.QueryMode.insensitive
-                        }
-                    }
+                    { title: { contains: params.query, mode: Prisma.QueryMode.insensitive } },
+                    { description: { contains: params.query, mode: Prisma.QueryMode.insensitive } }
                 ]
-            })
-        }
+            } : {},
+            params.type && params.type !== 'ALL' ? { type: params.type } : {},
+            params.startDate && params.endDate ? {
+                startDateTime: {
+                    gte: new Date(params.startDate),
+                    lte: new Date(params.endDate)
+                }
+            } : {}
+        ]
+    };
 
-        const whereConditions: Prisma.EventWhereInput = {
-            AND: conditions
-        }
+    const [events, totalCount] = await Promise.all([
+        prisma.event.findMany({
+            where,
+            orderBy: { startDateTime: 'desc' },
+            skip: (page - 1) * perPage,
+            take: perPage,
+        }),
+        prisma.event.count({ where })
+    ]);
 
-        const [events, total] = await Promise.all([
-            prisma.event.findMany({
-                where: whereConditions,
-                orderBy: {
-                    startDateTime: 'desc'  // Changed from 'asc' to 'desc'
-                },
-                include: {
-                    ranklists: {
-                        include: {
-                            ranklist: true
-                        }
-                    },
-                    contestStats: true,
-                    _count: {
-                        select: {
-                            contestStats: true
-                        }
-                    }
-                },
-                skip,
-                take: limit,
-            }),
-            prisma.event.count({
-                where: whereConditions
-            })
-        ])
-
-        return {
-            events,
-            total,
-            totalPages: Math.ceil(total / limit)
-        }
-    } catch (error: unknown) {
-        // Type the error properly
-        console.error('Error fetching events:', error instanceof Error ? error.message : error)
-        return null
-    }
+    return {
+        events,
+        totalPages: Math.ceil(totalCount / perPage),
+        currentPage: page
+    };
 }

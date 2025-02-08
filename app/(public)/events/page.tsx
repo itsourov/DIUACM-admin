@@ -1,67 +1,78 @@
-import { Metadata } from 'next'
-import EventList from './components/EventList'
-import { getEvents } from './actions'
-import { SearchParams } from './types'
+import {Suspense} from 'react';
+import {getEvents} from './actions';
+import EventSearchForm from './components/EventSearchForm';
+import EventCard from './components/EventCard';
+import Pagination from './components/Pagination';
+import {EventsSearchParams} from "@/app/(public)/events/types";
+import EmptyState from "@/app/(public)/events/components/EmptyState";
 
-export const metadata: Metadata = {
-    title: 'Events - Programming Contests & Classes',
-    description: 'Discover upcoming programming contests, coding classes, and tech events. Join our community and enhance your programming skills.',
+type PageProps = {
+    searchParams: Promise<{
+        page?: string;
+        query?: string;
+        type?: string;
+        startDate?: string;
+        endDate?: string;
+    }>
 }
 
-interface PageProps {
-    searchParams: Promise<SearchParams>
-}
+export default async function EventsPage({searchParams}: PageProps) {
+    // Await the searchParams before using them
+    const resolvedParams = await searchParams;
 
-export default async function EventsPage({ searchParams }: PageProps) {
-    const resolvedParams = await searchParams
-    const page = Number(resolvedParams.page) || 1
-    const search = resolvedParams.q || ''
-
-    const data = await getEvents(page, search)
-
-    if (!data) {
-        return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-                <div className="text-center px-4">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Unable to load events
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Please refresh the page or try again later.
-                    </p>
-                </div>
-            </div>
-        )
-    }
-
-    const { events, total, totalPages } = data
+    const {events, totalPages, currentPage} = await getEvents({
+        page: resolvedParams.page ? parseInt(resolvedParams.page) : 1,
+        query: resolvedParams.query,
+        type: resolvedParams.type as EventsSearchParams['type'],
+        startDate: resolvedParams.startDate,
+        endDate: resolvedParams.endDate
+    });
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <section className="relative py-16 md:py-20 bg-gradient-to-b from-blue-50 to-gray-100 dark:from-blue-950/50 dark:to-gray-900">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            {/* Hero Section */}
+            <section className="relative py-20 bg-gradient-to-b from-blue-50/20 to-transparent dark:from-blue-900/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center max-w-3xl mx-auto">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                            Programming Events
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                            Events
                         </h1>
                         <p className="text-lg text-gray-600 dark:text-gray-400">
-                            Join contests, attend workshops, and connect with fellow programmers
+                            Browse and search through our events
                         </p>
                     </div>
                 </div>
             </section>
 
-            <section className="py-8 md:py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <EventList
-                        initialEvents={events}
-                        totalPages={totalPages}
-                        currentPage={page}
-                        totalEvents={total}
-                        initialSearch={search}
-                    />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <Suspense fallback={<div>Loading search...</div>}>
+                    <EventSearchForm/>
+                </Suspense>
+
+                <div className="mt-8 space-y-4">
+                    {events.map((event) => (
+                        <EventCard key={event.id} event={event}/>
+                    ))}
+
+                    {events.length === 0 && (
+                        <EmptyState
+                            title="No Events Found"
+                            message={
+                                resolvedParams.query || resolvedParams.type || resolvedParams.startDate
+                                    ? "We couldn't find any events matching your filters. Try adjusting your search criteria or removing some filters."
+                                    : "There are no events scheduled at the moment. Check back later for updates."
+                            }
+                        />
+                    )}
                 </div>
-            </section>
+
+                {totalPages > 1 && (
+                    <Pagination
+                        totalPages={totalPages}
+                        currentPage={currentPage}
+                    />
+                )}
+            </div>
         </div>
-    )
+    );
 }
