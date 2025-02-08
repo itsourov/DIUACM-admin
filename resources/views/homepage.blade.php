@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-web-layout>
     <!-- Hero Section -->
     @include('partials.hero')
 
@@ -21,4 +19,4 @@
 
     <!-- CTA Section -->
     @include('partials.cta')
-@endsection
+</x-web-layout>

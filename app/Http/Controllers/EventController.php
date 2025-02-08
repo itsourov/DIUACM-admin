@@ -10,7 +10,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        return EventResource::collection(Event::all());
+        return view('events.index');
     }
 
     public function store(EventRequest $request)

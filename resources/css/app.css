@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@keyframes expand {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes ambient-pulse {
+    0% { opacity: 0.2; }
+    50% { opacity: 0.4; }
+    100% { opacity: 0.2; }
+}
+
+.animate-ambient-pulse {
+    animation: ambient-pulse 4s ease-in-out infinite;
+}
+
+
+/* Add smooth transition for theme switching */
+:root {
+    --transition-duration: 0.15s;
+}
+
+html {
+    transition: background-color var(--transition-duration) ease;
+}
+
+html.dark {
+    color-scheme: dark;
+}
+
+body {
+    transition: background-color var(--transition-duration) ease,
+    color var(--transition-duration) ease;
+}
