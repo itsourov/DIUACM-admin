@@ -83,10 +83,11 @@ class EventsRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make('attach')
                     ->preloadRecordSelect()
+                    ->recordSelectSearchColumns(['title', 'description', 'event_link'])
                     ->modalWidth('3xl')
-                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->latest('starting_at'))
+                    ->recordSelectOptionsQuery(fn(Builder $query) => $query->latest('starting_at'))
                     ->recordTitle(function ($record) {
-                        return  $record->starting_at->format('d M Y').' || '.$record->title ;
+                        return $record->starting_at->format('d M Y') . ' || ' . $record->title;
                     })
                     ->multiple()
                     ->form(fn(AttachAction $action): array => [

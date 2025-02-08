@@ -165,6 +165,7 @@ class EventResource extends Resource
                     ->date(),
 
                 TextColumn::make('event_link')
+                    ->searchable()
                     ->toggleable()->toggledHiddenByDefault(),
 
                 TextColumn::make('open_for_attendance'),

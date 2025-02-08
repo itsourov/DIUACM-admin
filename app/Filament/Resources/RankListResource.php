@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RankListResource\Pages;
 use App\Filament\Resources\RankListResource\RelationManagers\EventsRelationManager;
+use App\Filament\Resources\RankListResource\RelationManagers\UsersRelationManager;
 use App\Models\RankList;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
@@ -118,6 +119,7 @@ class RankListResource extends Resource
     {
         return [
             EventsRelationManager::class,
+            UsersRelationManager::class,
         ];
     }
 }
