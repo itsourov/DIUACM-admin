@@ -2,13 +2,22 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\EventAttendanceScopes;
+use App\Enums\EventTypes;
+use App\Enums\VisibilityStatuses;
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
+use Carbon\Carbon;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -24,46 +33,113 @@ class EventResource extends Resource
 
     protected static ?string $slug = 'events';
 
-   protected static ?string $navigationIcon = 'heroicon-o-calendar';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('title')
-                    ->required(),
+                Section::make('Basic Information')
+                    ->schema([
+                        TextInput::make('title')
+                            ->required()
+                            ->columnSpan('full'),
 
-                TextInput::make('description'),
+                        RichEditor::make('description')
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'link',
+                                'bulletList',
+                                'orderedList',
+                                'h2',
+                                'h3',
+                                'blockquote',
+                                'codeBlock',
+                            ])
+                            ->placeholder('Enter event description')
+                            ->columnSpan('full'),
 
-                TextInput::make('status')
-                    ->required(),
-                DateTimePicker::make('starting_at')
-                    ->seconds(false)
-                    ->label('Starting Date'),
+                        Grid::make(2)
+                            ->schema([
+                                ToggleButtons::make('type')
+                                    ->enum(EventTypes::class)
+                                    ->options(EventTypes::class)
+                                    ->default(EventTypes::CONTEST)
+                                    ->inline()
+                                    ->required(),
 
-                DateTimePicker::make('ending_at')
-                    ->seconds(false)
-                    ->label('Ending Date'),
+                                ToggleButtons::make('status')
+                                    ->enum(VisibilityStatuses::class)
+                                    ->options(VisibilityStatuses::class)
+                                    ->default(VisibilityStatuses::DRAFT)
+                                    ->inline()
+                                    ->required(),
+                            ]),
+                    ]),
 
-                TextInput::make('event_link'),
+                Section::make('Event Schedule')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                DateTimePicker::make('starting_at')
+                                    ->seconds(false)
+                                    ->label('Starting Date')
+                                    ->required(),
 
-                TextInput::make('event_password'),
+                                DateTimePicker::make('ending_at')
+                                    ->seconds(false)
+                                    ->label('Ending Date')
+                                    ->after('starting_at')
+                                    ->required(),
+                                Placeholder::make('duration')
+                                    ->live()
+                                    ->content(fn($get) => calculateRuntime($get('starting_at'), $get('ending_at')))
+                                    ->columnSpan('full'),
+                            ]),
+                    ]),
 
-                Checkbox::make('open_for_attendance'),
+                Section::make('Event Access')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('event_link')
+                                    ->url()
+                                    ->columnSpan(1),
 
-                TextInput::make('type')
-                    ->required(),
+                                TextInput::make('event_password')
+                                    ->string()
+                                    ->columnSpan(1),
+                            ]),
 
-                TextInput::make('attendance_scope')
-                    ->required(),
+                        Grid::make(2)
+                            ->schema([
+                                ToggleButtons::make('attendance_scope')
+                                    ->enum(EventAttendanceScopes::class)
+                                    ->options(EventAttendanceScopes::class)
+                                    ->default(EventAttendanceScopes::OPEN_FOR_ALL)
+                                    ->inline()
+                                    ->required(),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?Event $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+                                Checkbox::make('open_for_attendance')
+                                    ->label('Open for Attendance')
+                                    ->helperText('Check this if the event is ready for attendees'),
+                            ]),
+                    ]),
 
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?Event $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                Section::make('Event History')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                Placeholder::make('created_at')
+                                    ->label('Created Date')
+                                    ->content(fn(?Event $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+
+                                Placeholder::make('updated_at')
+                                    ->label('Last Modified Date')
+                                    ->content(fn(?Event $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                            ]),
+                    ])->collapsed(),
             ]);
     }
 
@@ -75,7 +151,8 @@ class EventResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('description'),
+                TextColumn::make('description')
+                    ->toggleable()->toggledHiddenByDefault(),
 
                 TextColumn::make('status'),
 
@@ -85,9 +162,11 @@ class EventResource extends Resource
 
                 TextColumn::make('ending_at')
                     ->label('Ending Date')
+                    ->toggleable()->toggledHiddenByDefault()
                     ->date(),
 
-                TextColumn::make('event_link'),
+                TextColumn::make('event_link')
+                    ->toggleable()->toggledHiddenByDefault(),
 
                 TextColumn::make('open_for_attendance'),
 
@@ -121,5 +200,23 @@ class EventResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return ['title'];
+    }
+}
+
+function calculateRuntime($start, $end): ?string
+{
+    if (!$start || !$end) {
+        return 'N/A'; // Placeholder text when either time is not set
+    }
+
+    $start = Carbon::parse($start);
+    $end = Carbon::parse($end);
+
+    $diff = $start->diff($end);
+
+    try {
+        return $diff->forHumans();
+    } catch (\Exception $e) {
+        return 'Calculation error: ' . $e->getMessage();
     }
 }

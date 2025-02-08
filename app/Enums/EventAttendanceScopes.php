@@ -34,9 +34,9 @@ enum EventAttendanceScopes: string implements HasColor, HasIcon, HasLabel
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::OPEN_FOR_ALL => 'heroicon-o-globe',
+           self::OPEN_FOR_ALL => 'heroicon-o-globe-alt',
             self :: ONLY_GIRLS => 'heroicon-o-user-group',
-            self :: JUNIOR_PROGRAMMERS => 'heroicon-o-code',
+           self::JUNIOR_PROGRAMMERS => 'heroicon-o-code-bracket',
         };
     }
 
