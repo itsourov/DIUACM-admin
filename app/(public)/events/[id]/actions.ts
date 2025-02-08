@@ -28,8 +28,13 @@ export async function markAttendance(eventId: string, password: string) {
     }
 
     const now = new Date();
-    if (now < new Date(event.startDateTime) || now > new Date(event.endDateTime)) {
-        throw new Error('Event is not currently active');
+    const startDate = new Date(event.startDateTime);
+    const endDate = new Date(event.endDateTime);
+    const attendanceStartTime = new Date(startDate.getTime() - 15 * 60000);
+    const attendanceEndTime = new Date(endDate.getTime() + 15 * 60000);
+
+    if (now < attendanceStartTime || now > attendanceEndTime) {
+        throw new Error('Attendance can only be marked 15 minutes before or after the event');
     }
 
     try {
