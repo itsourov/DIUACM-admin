@@ -8,14 +8,13 @@ use App\Enums\VisibilityStatuses;
 use App\Filament\Resources\EventResource\Pages;
 use App\Models\Event;
 use Carbon\Carbon;
+use Exception;
 use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
@@ -60,7 +59,7 @@ class EventResource extends Resource
                             ->placeholder('Enter event description')
                             ->columnSpan('full'),
 
-                        Grid::make(2)
+                        Grid::make()
                             ->schema([
                                 ToggleButtons::make('type')
                                     ->enum(EventTypes::class)
@@ -80,7 +79,7 @@ class EventResource extends Resource
 
                 Section::make('Event Schedule')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make()
                             ->schema([
                                 DateTimePicker::make('starting_at')
                                     ->seconds(false)
@@ -101,7 +100,7 @@ class EventResource extends Resource
 
                 Section::make('Event Access')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make()
                             ->schema([
                                 TextInput::make('event_link')
                                     ->url()
@@ -112,7 +111,7 @@ class EventResource extends Resource
                                     ->columnSpan(1),
                             ]),
 
-                        Grid::make(2)
+                        Grid::make()
                             ->schema([
                                 ToggleButtons::make('attendance_scope')
                                     ->enum(EventAttendanceScopes::class)
@@ -129,7 +128,7 @@ class EventResource extends Resource
 
                 Section::make('Event History')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make()
                             ->schema([
                                 Placeholder::make('created_at')
                                     ->label('Created Date')
@@ -216,7 +215,7 @@ function calculateRuntime($start, $end): ?string
 
     try {
         return $diff->forHumans();
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         return 'Calculation error: ' . $e->getMessage();
     }
 }
