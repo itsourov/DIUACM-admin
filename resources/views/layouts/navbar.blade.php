@@ -90,13 +90,13 @@
                              x-transition
                              class="absolute right-0 mt-2 w-48 py-1 bg-white dark:bg-gray-900 rounded-md shadow-lg
                                     border border-gray-200 dark:border-gray-700 z-50">
-                            <a href="{{ route('profile') }}"
+                            <a href="/"
                                class="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
                                       hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150">
                                 <i data-lucide="user" class="h-4 w-4"></i>
                                 <span>Profile</span>
                             </a>
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="/">
                                 @csrf
                                 <button type="submit"
                                         class="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400
@@ -178,13 +178,13 @@
                 @endforeach
 
                 @auth
-                    <a href="{{ route('profile') }}"
+                    <a href="/"
                        class="flex items-center space-x-2 px-3 py-2 rounded-md mb-1
                               text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                         <i data-lucide="user" class="h-5 w-5"></i>
                         <span>Profile</span>
                     </a>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="/">
                         @csrf
                         <button type="submit"
                                 class="flex items-center space-x-2 w-full px-3 py-2 rounded-md mb-1
