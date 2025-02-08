@@ -6,6 +6,7 @@ use App\Enums\EventAttendanceScopes;
 use App\Enums\EventTypes;
 use App\Enums\VisibilityStatuses;
 use App\Filament\Resources\EventResource\Pages;
+use App\Filament\Resources\EventResource\RelationManagers\UsersRelationManager;
 use App\Models\Event;
 use Carbon\Carbon;
 use Exception;
@@ -200,6 +201,14 @@ class EventResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return ['title'];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            UsersRelationManager::class,
+
+        ];
     }
 }
 

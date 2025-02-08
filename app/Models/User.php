@@ -63,4 +63,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(RankList::class)->withPivot('weight');
     }
+    public function events(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class)->withTimestamps();
+    }
 }
