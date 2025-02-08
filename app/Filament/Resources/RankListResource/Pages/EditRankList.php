@@ -16,4 +16,13 @@ class EditRankList extends EditRecord
             DeleteAction::make(),
         ];
     }
+    public function hasCombinedRelationManagerTabsWithContent(): bool
+    {
+        return true;
+    }
+    public function getContentTabIcon(): ?string
+    {
+        return 'heroicon-m-cog';
+    }
+
 }

@@ -7,6 +7,8 @@ use App\Enums\EventTypes;
 use App\Enums\VisibilityStatuses;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
@@ -35,5 +37,9 @@ class Event extends Model
             'type' => EventTypes::class,
             'attendance_scope' => EventAttendanceScopes::class,
         ];
+    }
+    public function rankLists(): BelongsToMany
+    {
+        return $this->belongsToMany(RankList::class)->withPivot('weight');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RankListResource\Pages;
+use App\Filament\Resources\RankListResource\RelationManagers\EventsRelationManager;
 use App\Models\RankList;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
@@ -111,5 +112,12 @@ class RankListResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return ['title'];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            EventsRelationManager::class,
+        ];
     }
 }
