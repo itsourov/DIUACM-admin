@@ -20,7 +20,13 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        return view('events.show', compact('event'));
+        $upcomingEvents = Event::where('starting_at', '>', now())
+            ->where('id', '!=', $event->id)
+            ->orderBy('starting_at')
+            ->limit(3)
+            ->get();
+
+        return view('events.show', compact('event', 'upcomingEvents'));
     }
 
     public function update(EventRequest $request, Event $event)

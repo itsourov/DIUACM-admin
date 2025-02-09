@@ -60,16 +60,57 @@
                     </div>
 
                     <!-- Quick Actions -->
-                    @if($event->open_for_attendance && $status === 'running' && !$hasAttendance)
-                        <a href="/"
-                           class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-150 shadow-sm hover:shadow">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                            Give Attendance
-                        </a>
-                    @endif
+                    <div class="flex gap-2">
+                        @if($event->open_for_attendance)
+                            @if($status === 'running' && !$hasAttendance)
+                                <a href="/"
+                                   class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition duration-150 shadow-sm hover:shadow">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                    Give Attendance
+                                </a>
+                            @elseif($status === 'upcoming')
+                                <div class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium rounded-xl">
+                                    <span class="flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        Attendance will open when event starts
+                                    </span>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
                 </div>
+
+                <!-- Countdown Timer for Upcoming/Running Events -->
+                @if($status === 'upcoming' || $status === 'running')
+                    <div x-data="countdown('{{ $status === 'upcoming' ? $event->starting_at : $event->ending_at }}')"
+                         class="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl shadow-sm">
+                        <h3 class="text-center text-blue-600 dark:text-blue-400 font-medium mb-4">
+                            {{ $status === 'upcoming' ? 'Event Starts In' : 'Event Ends In' }}
+                        </h3>
+                        <div class="flex justify-center gap-6">
+                            <div class="text-center bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm">
+                                <span x-text="days" class="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums"></span>
+                                <p class="text-xs uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">Days</p>
+                            </div>
+                            <div class="text-center bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm">
+                                <span x-text="hours" class="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums"></span>
+                                <p class="text-xs uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">Hours</p>
+                            </div>
+                            <div class="text-center bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm">
+                                <span x-text="minutes" class="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums"></span>
+                                <p class="text-xs uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">Minutes</p>
+                            </div>
+                            <div class="text-center bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm">
+                                <span x-text="seconds" class="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums"></span>
+                                <p class="text-xs uppercase tracking-wider text-blue-600/70 dark:text-blue-400/70 mt-1">Seconds</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Main Content -->
@@ -207,7 +248,7 @@
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200/80 dark:border-gray-700/80 p-6">
                         <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
                             </svg>
                             Event Details
                         </h2>
@@ -220,6 +261,34 @@
                                 <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Attendance Scope</label>
                                 <p class="mt-1 text-gray-900 dark:text-white font-medium">{{ $event->attendance_scope->getLabel() }}</p>
                             </div>
+
+                            @if($event->open_for_attendance)
+                                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                    <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Attendance Window</label>
+                                    @if($status === 'upcoming')
+                                        <p class="mt-1 text-blue-600 dark:text-blue-400 font-medium">
+                                            Opens at {{ $event->starting_at->format('h:i A') }}
+                                        </p>
+                                    @elseif($status === 'running')
+                                        @if(!$hasAttendance)
+                                            <p class="mt-1 text-green-600 dark:text-green-400 font-medium">
+                                                Open now until {{ $event->ending_at->format('h:i A') }}
+                                            </p>
+                                        @else
+                                            <p class="mt-1 text-green-600 dark:text-green-400 font-medium flex items-center">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                Attendance recorded
+                                            </p>
+                                        @endif
+                                    @elseif($status === 'ended')
+                                        <p class="mt-1 text-gray-600 dark:text-gray-400 font-medium">
+                                            Closed at {{ $event->ending_at->format('h:i A') }}
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
 
                             <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                                 <label class="text-sm font-medium text-gray-500 dark:text-gray-400">Event Link</label>
@@ -238,8 +307,53 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Related/Upcoming Events -->
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200/80 dark:border-gray-700/80 p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Upcoming Events</h2>
+                        <div class="space-y-4">
+                            @foreach($upcomingEvents as $upcomingEvent)
+                                <a href="{{ route('events.show', $upcomingEvent) }}"
+                                   class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition">
+                                    <h3 class="font-medium text-gray-900 dark:text-white">{{ $upcomingEvent->title }}</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        {{ $upcomingEvent->starting_at->format('F j, Y') }}
+                                    </p>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Alpine.js Countdown Script -->
+    <script>
+        function countdown(date) {
+            return {
+                days: '00',
+                hours: '00',
+                minutes: '00',
+                seconds: '00',
+                init() {
+                    setInterval(() => {
+                        const target = new Date(date).getTime();
+                        const now = new Date().getTime();
+                        const difference = target - now;
+
+                        this.days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                        this.hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        this.minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                        this.seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                        this.days = this.days < 10 ? '0' + this.days : this.days;
+                        this.hours = this.hours < 10 ? '0' + this.hours : this.hours;
+                        this.minutes = this.minutes < 10 ? '0' + this.minutes : this.minutes;
+                        this.seconds = this.seconds < 10 ? '0' + this.seconds : this.seconds;
+                    }, 1000);
+                }
+            }
+        }
+    </script>
 </x-web-layout>
