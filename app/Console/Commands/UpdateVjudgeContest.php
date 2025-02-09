@@ -102,7 +102,7 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
 
     private function validateAndGetContest(): ?Event
     {
-        $contest = Event::find($this->argument('event_id'));
+        $contest = Event::with('users')->find($this->argument('event_id'));
 
         if (!$contest) {
             $this->error('❌ Contest not found with ID: ' . $this->argument('event_id'));
@@ -141,7 +141,7 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
 
         if (!$email) {
             $this->error('❌ Vjudge authentication failed');
-            return true;
+            return false;
         }
 
         $this->info('✅ Authenticated successfully as: ' . $email);
@@ -232,6 +232,8 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
         $this->info('🔄 Updating participant statistics...');
 
         $users = $this->getContestUsers($contest);
+        $contestUserIds = $contest->users->pluck('id')->toArray();
+
         $bar = $this->output->createProgressBar(count($users));
         $bar->start();
 
@@ -246,8 +248,20 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
             }
 
             try {
-                $this->updateUserStats($user, $contest, $participantStats[$vjudgeHandle] ?? null);
-                $this->stats['updated']++;
+                $stats = $participantStats[$vjudgeHandle] ?? null;
+
+                if ($stats) {
+                    // Adjust stats based on whether user is in the contest
+                    if (!in_array($user->id, $contestUserIds)) {
+                        // User not in contest - combine solve_count and upsolve_count
+                        $totalSolves = ($stats['solveCount'] ?? 0) + ($stats['upSolveCount'] ?? 0);
+                        $stats['upSolveCount'] = $totalSolves;
+                        $stats['solveCount'] = 0;
+                    }
+
+                    $this->updateUserStats($user, $contest, $stats);
+                    $this->stats['updated']++;
+                }
             } catch (\Exception $e) {
                 $this->stats['errors']++;
                 Log::error('Failed to update stats for user', [
