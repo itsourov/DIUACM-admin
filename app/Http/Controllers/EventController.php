@@ -20,7 +20,7 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        return new EventResource($event);
+        return view('events.show', compact('event'));
     }
 
     public function update(EventRequest $request, Event $event)
