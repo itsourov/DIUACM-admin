@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Event;
+use Filament\Notifications\Notification;
 
 class EventController extends Controller
 {
@@ -25,6 +26,7 @@ class EventController extends Controller
             ->orderBy('starting_at')
             ->limit(3)
             ->get();
+
 
         return view('events.show', compact('event', 'upcomingEvents'));
     }

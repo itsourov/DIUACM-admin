@@ -88,7 +88,7 @@
                             @endif
                         </button>
 
-                        <div x-show="open"
+                        <div x-cloak x-show="open"
                              x-transition
                              class="absolute right-0 mt-2 w-48 py-1 bg-white dark:bg-gray-900 rounded-md shadow-lg
                                     border border-gray-200 dark:border-gray-700 z-50">
@@ -123,7 +123,7 @@
 
     <!-- Mobile Menu -->
     <div x-data="{ open: false }"
-         x-show="open"
+         x-cloak x-show="open"
          @open-mobile-menu.window="open = true"
          @click.away="open = false"
          x-transition

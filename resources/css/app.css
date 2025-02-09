@@ -38,3 +38,5 @@ body {
     transition: background-color var(--transition-duration) ease,
     color var(--transition-duration) ease;
 }
+
+[x-cloak] { display: none !important; }

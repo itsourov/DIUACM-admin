@@ -11,7 +11,7 @@
         <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     @endif
     <script src="https://unpkg.com/lucide@latest"></script>
-    @livewireStyles
+    @filamentStyles
     <!-- Dark mode script -->
     <script>
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -39,7 +39,8 @@
 
 
 @vite('resources/js/app.js')
-@livewireScripts
+@livewire('notifications')
+@filamentScripts
 <script>
     // Initialize Lucide Icons
     lucide.createIcons();
