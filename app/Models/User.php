@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Enums\Gender;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -59,12 +60,19 @@ class User extends Authenticatable
             'max_cf_rating' => 'integer',
         ];
     }
+
     public function rankLists(): BelongsToMany
     {
         return $this->belongsToMany(RankList::class)->withPivot('weight');
     }
+
     public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class)->withTimestamps();
+    }
+
+    public function solveStats(): HasMany
+    {
+        return $this->hasMany(SolveStat::class);
     }
 }

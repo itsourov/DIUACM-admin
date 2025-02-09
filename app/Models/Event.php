@@ -38,12 +38,19 @@ class Event extends Model
             'attendance_scope' => EventAttendanceScopes::class,
         ];
     }
+
     public function rankLists(): BelongsToMany
     {
         return $this->belongsToMany(RankList::class)->withPivot('weight');
     }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    public function solveStats(): HasMany
+    {
+        return $this->hasMany(SolveStat::class);
     }
 }
