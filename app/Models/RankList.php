@@ -14,6 +14,7 @@ class RankList extends Model
         'title',
         'session',
         'description',
+        'weight_of_upsolve',
     ];
 
     public function events(): BelongsToMany

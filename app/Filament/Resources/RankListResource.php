@@ -47,8 +47,14 @@ class RankListResource extends Resource
                             ->required()
                             ->label('Session')
                             ->placeholder('Enter the session')
-                            ->helperText('Specify the session for this ranklist')
-                            ->columnSpan('full'),
+                            ->helperText('Specify the session for this ranklist'),
+                        TextInput::make('weight_of_upsolve')
+                            ->required()
+                            ->numeric()
+                            ->minValue(0.0)
+                            ->maxValue(1.0)
+                            ->default(0.25)
+                            ->step(0.01),
 
                         Textarea::make('description')
                             ->label('Description')

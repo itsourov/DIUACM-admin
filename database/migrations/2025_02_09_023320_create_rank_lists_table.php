@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('title');
             $table->string('session');
             $table->string('description')->nullable();
+            $table->double('weight_of_upsolve')->default(0.25);
             $table->timestamps();
         });
     }
