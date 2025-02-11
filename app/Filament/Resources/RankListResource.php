@@ -9,6 +9,7 @@ use App\Models\RankList;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -55,6 +56,9 @@ class RankListResource extends Resource
                             ->maxValue(1.0)
                             ->default(0.25)
                             ->step(0.01),
+                        Select::make('tracker_id')
+                            ->relationship('tracker', 'title')
+                            ->required(),
 
                         Textarea::make('description')
                             ->label('Description')

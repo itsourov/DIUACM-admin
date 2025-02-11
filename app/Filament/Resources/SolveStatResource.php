@@ -121,10 +121,7 @@ class SolveStatResource extends Resource
     public static function getGloballySearchableAttributes(): array
     {
         return [
-            'user.name',
-            'event.name',
-            'solve_count',
-            'upsolve_count',
+
         ];
     }
 }

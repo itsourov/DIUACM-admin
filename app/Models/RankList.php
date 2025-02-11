@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class RankList extends Model
@@ -15,6 +16,7 @@ class RankList extends Model
         'session',
         'description',
         'weight_of_upsolve',
+        'tracker_id',
     ];
 
     public function events(): BelongsToMany
@@ -25,5 +27,10 @@ class RankList extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withPivot('score');
+    }
+
+    public function tracker(): BelongsTo
+    {
+        return $this->belongsTo(Tracker::class);
     }
 }
