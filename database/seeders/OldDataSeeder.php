@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Event;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
@@ -39,12 +40,13 @@ class OldDataSeeder extends Seeder
         foreach ($events as $eventData) {
             try {
 
+                if ($eventData['deleted_at']) continue;
                 Event::create(
                     [
                         'title' => $eventData['title'],
                         'description' => $eventData['description'],
-                        'starting_at' => $eventData['starting_time'],
-                        'ending_at' => $eventData['ending_time'],
+                        'starting_at' => Carbon::make($eventData['starting_time'])->timezone('Asia/Dhaka'),
+                        'ending_at' => Carbon::make($eventData['ending_time'])->timezone('Asia/Dhaka'),
                         'event_link' => $eventData['contest_link'],
                         'event_password' => $eventData['password'],
                         'open_for_attendance' => $eventData['open_for_attendance'],
@@ -85,13 +87,14 @@ class OldDataSeeder extends Seeder
 
         foreach ($users as $UserData) {
             try {
+                if ($UserData['deleted_at']) continue;
 
                 User::create(
                     [
                         'name' => $UserData['name'],
                         'username' => $UserData['username'],
                         'email' => $UserData['email'],
-                        'phone' => $UserData['phone']??"asd",
+                        'phone' => $UserData['phone'] ?? "asd",
                         'student_id' => $UserData['student_id'],
                         'codeforces_handle' => $UserData['codeforces_username'],
                         'vjudge_handle' => $UserData['vjudge_username'],

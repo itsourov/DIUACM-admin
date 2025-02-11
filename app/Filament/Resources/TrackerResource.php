@@ -60,6 +60,7 @@ class TrackerResource extends Resource
                                     ->maxLength(1000)
                                     ->placeholder('Enter description')
                                     ->helperText('Provide a detailed description'),
+
                                 ToggleButtons::make('status')
                                     ->enum(VisibilityStatuses::class)
                                     ->options(VisibilityStatuses::class)
@@ -76,13 +77,11 @@ class TrackerResource extends Resource
                                     ->schema([
                                         Placeholder::make('created_at')
                                             ->label('Created Date')
-                                            ->content(fn(?Tracker $record): string =>
-                                                $record?->created_at?->format('Y-m-d H:i:s') ?? '-'),
+                                            ->content(fn(?Tracker $record): string => $record?->created_at?->format('Y-m-d H:i:s') ?? '-'),
 
                                         Placeholder::make('updated_at')
                                             ->label('Last Modified Date')
-                                            ->content(fn(?Tracker $record): string =>
-                                                $record?->updated_at?->format('Y-m-d H:i:s') ?? '-'),
+                                            ->content(fn(?Tracker $record): string => $record?->updated_at?->format('Y-m-d H:i:s') ?? '-'),
                                     ]),
                             ])
                             ->columnSpan(2),

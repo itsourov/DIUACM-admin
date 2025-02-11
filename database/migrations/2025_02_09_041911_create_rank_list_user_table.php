@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->foreignId('rank_list_id')->constrained()->cascadeOnDelete();
             $table->double('score')->default(0.0);
             $table->timestamps();
+            $table->unique(['user_id', 'rank_list_id']);
         });
     }
 

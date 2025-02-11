@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\VisibilityStatuses;
 use App\Models\RankList;
+use App\Models\Tracker;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -13,6 +15,7 @@ class RankListFactory extends Factory
     public function definition(): array
     {
         return [
+            'tracker_id' => Tracker::all()->random()->id,
             'title' => $this->faker->word(),
             'session' => $this->faker->word(),
             'description' => $this->faker->text(),

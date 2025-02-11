@@ -14,6 +14,7 @@ class Tracker extends Model
         'title',
         'slug',
         'description',
+        'status',
     ];
 
     public function ranklists(): HasMany

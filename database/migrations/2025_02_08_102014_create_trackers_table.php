@@ -11,10 +11,9 @@ return new class extends Migration {
         Schema::create('trackers', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('slug');
+            $table->string('slug')->unique();
             $table->string('description');
             $table->enum('status', VisibilityStatuses::toArray())->default(VisibilityStatuses::DRAFT);
-
             $table->timestamps();
         });
     }
