@@ -11,6 +11,7 @@ enum Gender: string implements HasColor, HasIcon, HasLabel
     case MALE = 'male';
     case FEMALE = 'female';
     case OTHER = 'other';
+    case UNSPECIFIED = 'unspecified';
 
     public function getColor(): string
     {
@@ -18,6 +19,7 @@ enum Gender: string implements HasColor, HasIcon, HasLabel
             self::MALE => 'info',
             self::FEMALE => 'success',
             self::OTHER => 'gray',
+            self::UNSPECIFIED => 'gray',
         };
     }
 
@@ -27,13 +29,14 @@ enum Gender: string implements HasColor, HasIcon, HasLabel
             self::MALE => 'Male',
             self::FEMALE => 'Female',
             self::OTHER => 'Other',
+            self::UNSPECIFIED => 'Unspecified',
         };
     }
 
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::MALE, self::FEMALE, self::OTHER => 'heroicon-o-user',
+            self::MALE, self::FEMALE, self::OTHER, self::UNSPECIFIED => 'heroicon-o-user',
         };
     }
 

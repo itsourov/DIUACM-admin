@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('rank_list_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('rank_list_id')->constrained()->cascadeOnDelete();
             $table->double('score')->default(0.0);
             $table->timestamps();

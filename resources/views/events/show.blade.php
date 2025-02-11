@@ -5,6 +5,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200/80 dark:border-gray-700/80 p-6 mb-6">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="space-y-4">
+                        {{$event->starting_at}}
                         <!-- Status Badge -->
                         <div class="flex flex-wrap gap-2">
                             @php

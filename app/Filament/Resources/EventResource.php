@@ -44,6 +44,9 @@ class EventResource extends Resource
                         TextInput::make('title')
                             ->required()
                             ->columnSpan('full'),
+                        Placeholder::make('created_at')
+                            ->label('Created Date')
+                            ->content(now()),
 
                         RichEditor::make('description')
                             ->toolbarButtons([
@@ -84,12 +87,14 @@ class EventResource extends Resource
                             ->schema([
                                 DateTimePicker::make('starting_at')
                                     ->seconds(false)
+                                    ->timezone('Asia/Dhaka')
                                     ->label('Starting Date')
                                     ->required(),
 
                                 DateTimePicker::make('ending_at')
                                     ->seconds(false)
                                     ->label('Ending Date')
+                                    ->timezone('Asia/Dhaka')
                                     ->after('starting_at')
                                     ->required(),
                                 Placeholder::make('duration')

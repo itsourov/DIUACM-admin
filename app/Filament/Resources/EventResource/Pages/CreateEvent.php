@@ -63,8 +63,8 @@ class CreateEvent extends CreateRecord
                 if ($contest['id'] == $contest_id) {
                     $this->form->fill([
                         'title' => $contest['name'],
-                        'starting_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'], 'Asia/Dhaka')->toDateTimeString(),
-                        'ending_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'] + $contest['durationSeconds'], 'Asia/Dhaka')->toDateTimeString(),
+                        'starting_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'], )->toDateTimeString(),
+                        'ending_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'] + $contest['durationSeconds'], )->toDateTimeString(),
                         'event_link' => $contest_link,
                         'type' => EventTypes::CONTEST,
                         'status' => VisibilityStatuses::PUBLISHED,
@@ -121,8 +121,8 @@ class CreateEvent extends CreateRecord
 
             $this->form->fill([
                 'title' => $title,
-                'starting_at' => $startTime->setTimezone('Asia/Dhaka')->toDateTimeString(),
-                'ending_at' => $endTime->setTimezone('Asia/Dhaka')->toDateTimeString(),
+                'starting_at' => $startTime->toDateTimeString(),
+                'ending_at' => $endTime->toDateTimeString(),
                 'event_link' => $contest_link,
                 'type' => EventTypes::CONTEST,
                 'status' => VisibilityStatuses::PUBLISHED,
@@ -149,8 +149,8 @@ class CreateEvent extends CreateRecord
 
             $this->form->fill([
                 'title' => html_entity_decode($contest['title']),
-                'starting_at' => Carbon::createFromTimestamp($contest['begin'] / 1000, 'Asia/Dhaka')->toDateTimeString(),
-                'ending_at' => Carbon::createFromTimestamp($contest['end'] / 1000, 'Asia/Dhaka')->toDateTimeString(),
+                'starting_at' => Carbon::createFromTimestamp($contest['begin'] / 1000, )->toDateTimeString(),
+                'ending_at' => Carbon::createFromTimestamp($contest['end'] / 1000, )->toDateTimeString(),
                 'event_link' => $contest_link,
                 'type' => EventTypes::CONTEST,
                 'status' => VisibilityStatuses::PUBLISHED,

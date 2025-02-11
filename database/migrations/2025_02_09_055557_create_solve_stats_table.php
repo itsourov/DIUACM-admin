@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('solve_stats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('solve_count');
             $table->unsignedBigInteger('upsolve_count');
