@@ -252,12 +252,12 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
 
                 if ($stats) {
                     // Adjust stats based on whether user is in the contest
-                    if (!in_array($user->id, $contestUserIds)) {
-                        // User not in contest - combine solve_count and upsolve_count
-                        $totalSolves = ($stats['solveCount'] ?? 0) + ($stats['upSolveCount'] ?? 0);
-                        $stats['upSolveCount'] = $totalSolves;
-                        $stats['solveCount'] = 0;
-                    }
+//                    if (!in_array($user->id, $contestUserIds)) {
+//                        // User not in contest - combine solve_count and upsolve_count
+//                        $totalSolves = ($stats['solveCount'] ?? 0) + ($stats['upSolveCount'] ?? 0);
+//                        $stats['upSolveCount'] = $totalSolves;
+//                        $stats['solveCount'] = 0;
+//                    }
 
                     $this->updateUserStats($user, $contest, $stats);
                     $this->stats['updated']++;
@@ -291,6 +291,7 @@ class UpdateVjudgeContest extends Command implements PromptsForMissingInput
 
     private function updateUserStats($user, Event $contest, ?array $stats): void
     {
+
         SolveStat::updateOrCreate(
             [
                 'event_id' => $contest->id,
