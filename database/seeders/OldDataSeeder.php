@@ -2,12 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Enums\VisibilityStatuses;
 use App\Models\Event;
+use App\Models\RankList;
+use App\Models\Tracker;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class OldDataSeeder extends Seeder
 {
@@ -16,6 +20,26 @@ class OldDataSeeder extends Seeder
      */
     public function run(): void
     {
+
+        $tracker = Tracker::updateOrCreate([
+            'title' => 'Individual Contest Tracker',
+        ], [
+            'title' => 'Individual Contest Tracker',
+            'description' => 'Individual Contest Tracker',
+            'slug' => Str::slug('Individual Contest Tracker', '-'),
+            'status' => VisibilityStatuses::PUBLISHED,
+        ]);
+
+        $rankList = RankList::updateOrCreate([
+            'tracker_id' => $tracker->id,
+            'session' => '2024-2025',
+        ], [
+            'tracker_id' => $tracker->id,
+            'session' => '2024-2025',
+            'title' => 'Individual Contest Tracker (2024-2025)',
+        ]);
+
+
         $jsonPath = database_path('old-data/events.json');
 
         // Check if file exists
@@ -41,7 +65,7 @@ class OldDataSeeder extends Seeder
             try {
 
                 if ($eventData['deleted_at']) continue;
-                Event::create(
+                $event = Event::create(
                     [
                         'title' => $eventData['title'],
                         'description' => $eventData['description'],
@@ -54,6 +78,8 @@ class OldDataSeeder extends Seeder
                         'status' => $eventData['visibility'],
                     ]
                 );
+
+                $rankList->events()->syncWithoutDetaching($event->id);
 
 
                 $count++;
@@ -89,7 +115,7 @@ class OldDataSeeder extends Seeder
             try {
                 if ($UserData['deleted_at']) continue;
 
-                User::create(
+                $user = User::create(
                     [
                         'name' => $UserData['name'],
                         'username' => $UserData['username'],
@@ -105,6 +131,8 @@ class OldDataSeeder extends Seeder
 
                     ]
                 );
+
+                $rankList->users()->syncWithoutDetaching($user->id);
 
 
                 $count++;
