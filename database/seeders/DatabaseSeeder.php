@@ -25,19 +25,19 @@ class DatabaseSeeder extends Seeder
 
 //        User::factory(10)->create();
 //        Event::factory(100)->create();
-
+//
 //        Tracker::factory()->create([
 //            'title' => 'Individual Contest Tracker',
 //            'description' => 'Individual Contest Tracker',
 //            'slug' => 'individual-contest-tracker',
 //        ]);
 //
-//        RankList::factory(10)->create();
-//        foreach (RankList::with(['events', 'users'])->get() as $rankList) {
-//            $rankList->events()->attach(Event::all()->random(30)->pluck('id')->toArray());
-//            $rankList->users()->attach(User::all()->random(200)->pluck('id')->toArray());
-//
-//        }
+        RankList::factory(10)->create();
+        foreach (RankList::with(['events', 'users'])->get() as $rankList) {
+            $rankList->events()->attach(Event::all()->random(30)->pluck('id')->toArray());
+            $rankList->users()->attach(User::all()->random(200)->pluck('id')->toArray());
+
+        }
 //        foreach (RankList::with(['events', 'users'])->get() as $rankList) {
 //            foreach ($rankList->events as $event) {
 //                foreach ($rankList->users as $user) {
