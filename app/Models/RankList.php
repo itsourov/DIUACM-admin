@@ -16,8 +16,16 @@ class RankList extends Model
         'session',
         'description',
         'weight_of_upsolve',
+        'is_archived',
         'tracker_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_archived' => 'boolean',
+        ];
+    }
 
     public function events(): BelongsToMany
     {

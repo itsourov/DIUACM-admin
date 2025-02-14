@@ -128,11 +128,9 @@ class OldDataSeeder extends Seeder
                         'email_verified_at' => $UserData['email_verified_at'],
                         'password' => $UserData['password'],
 
-
                     ]
                 );
 
-                $rankList->users()->syncWithoutDetaching($user->id);
 
 
                 $count++;

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('session');
             $table->string('description')->nullable();
             $table->double('weight_of_upsolve')->default(0.25);
+            $table->boolean('is_archived')->default(false);
             $table->timestamps();
         });
     }
