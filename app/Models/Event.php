@@ -55,7 +55,7 @@ class Event extends Model
         return $this->belongsToMany(User::class)->withTimestamps();
     }
 
-    public function attendances(): BelongsToMany
+    public function attenders(): BelongsToMany
     {
         return $this->belongsToMany(User::class)->withTimestamps();
     }

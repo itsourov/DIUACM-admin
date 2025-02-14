@@ -10,11 +10,12 @@ class HomeController extends Controller
 {
     public function index()
     {
+
         $data = [
             'currentTime' => Carbon::now()->format('Y-m-d H:i:s'),
             'currentUser' => Auth::user()->username ?? 'guest',
         ];
-        
+
         return view('homepage', $data);
     }
 }

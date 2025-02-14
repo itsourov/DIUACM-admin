@@ -82,6 +82,13 @@ class UsersRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
+                Tables\Actions\Action::make("Attach Users from Attendance")
+                    ->action(function (): void {
+                        $this->ownerRecord->users()->syncWithoutDetaching(
+                            $this->ownerRecord->events()->with('attenders')->get()->pluck('attenders.*.id')->flatten()->toArray()
+
+                        );
+                    }),
                 AttachAction::make('attach')
                     ->recordSelectSearchColumns(['email', 'name', 'student_id', 'username', 'phone', 'codeforces_handle', 'atcoder_handle', 'vjudge_handle'])
                     ->preloadRecordSelect()

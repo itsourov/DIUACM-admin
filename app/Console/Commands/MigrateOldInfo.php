@@ -35,7 +35,7 @@ class MigrateOldInfo extends Command
      */
     public function handle()
     {
-//        $this->getUsers();
+        $this->getUsers();
         $this->getEvents();
     }
 
@@ -137,7 +137,7 @@ class MigrateOldInfo extends Command
             foreach ($event['attenders'] ?? [] as $attender) {
                 $attenderUser = User::where('email', $attender['email'])->first();
                 if (!$attenderUser) $this->error('User not found: ' . $attender['email']);
-                $newEvent->attendances()->syncWithoutDetaching($attenderUser->id);
+                $newEvent->attenders()->syncWithoutDetaching($attenderUser->id);
             }
 
             $this->info('Event ' . $event['title'] . ' migrated successfully');
