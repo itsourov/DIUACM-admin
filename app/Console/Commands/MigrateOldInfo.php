@@ -88,12 +88,7 @@ class MigrateOldInfo extends Command
         foreach ($events as $event) {
 
             $attendanceScope = EventAttendanceScopes::OPEN_FOR_ALL;
-            if (Str::contains($event['title'], 'junior')) {
-                $attendanceScope = EventAttendanceScopes::JUNIOR_PROGRAMMERS;
-            }
-            if (Str::contains($event['title'], 'girl')) {
-                $attendanceScope = EventAttendanceScopes::ONLY_GIRLS;
-            }
+
             $newEvent = Event::updateOrCreate(
                 [
                     'title' => $event['title'],
