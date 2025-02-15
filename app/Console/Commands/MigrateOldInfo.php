@@ -36,7 +36,7 @@ class MigrateOldInfo extends Command
     public function handle()
     {
         $this->getUsers();
-//        $this->getEvents();
+        $this->getEvents();
     }
 
     private function getUsers()
@@ -57,6 +57,7 @@ class MigrateOldInfo extends Command
                 if ($pp['email'] === $user['email'] && $pp['profile_image_url'] !== 'https://diuacm.com/images/user.png')
                     $image = $pp['profile_image_url'];
             }
+            $this->info($image);
             User::updateOrCreate(
                 [
                     'email' => $user['email']
@@ -129,7 +130,7 @@ class MigrateOldInfo extends Command
                     ],
                     [
                         'title' => $rankList['title'],
-                        'session' => '2024-1025',
+                        'session' => '2024-2025',
                         'is_archived' => false,
                         'tracker_id' => $tracker->id,
                         'description' => $rankList['description'],
