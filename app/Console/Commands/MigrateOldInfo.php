@@ -45,6 +45,8 @@ class MigrateOldInfo extends Command
             'Authorization' => config('app.key'),
         ])->get($this->baseUrl . '/users')->json();
         $this->info('Total users found: ' . count($users));
+
+        $profileImages = Http::get($this->baseUrl . '/pp')->json();
         foreach ($users as $user) {
 
             User::updateOrCreate(
@@ -53,6 +55,7 @@ class MigrateOldInfo extends Command
                 ],
                 [
                     'name' => $user['name'],
+                    'image' => $profileImages[$user['email']]['profile_image_url'] === 'https://diuacm.com/images/user.png' ? null : $profileImages[$user['email']]['profile_image_url'],
                     'username' => $user['username'],
                     'email' => $user['email'],
                     'phone' => $user['phone'],
