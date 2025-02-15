@@ -36,7 +36,7 @@ class MigrateOldInfo extends Command
     public function handle()
     {
         $this->getUsers();
-        $this->getEvents();
+//        $this->getEvents();
     }
 
     private function getUsers()
@@ -47,15 +47,23 @@ class MigrateOldInfo extends Command
         $this->info('Total users found: ' . count($users));
 
         $profileImages = Http::get($this->baseUrl . '/pp')->json();
+        $this->info('Total images found: ' . count($profileImages));
+
+
         foreach ($users as $user) {
 
+            $image = null;
+            foreach ($profileImages as $pp) {
+                if ($pp['email'] === $user['email'] && $pp['profile_image_url'] !== 'https://diuacm.com/images/user.png')
+                    $image = $pp['profile_image_url'];
+            }
             User::updateOrCreate(
                 [
                     'email' => $user['email']
                 ],
                 [
                     'name' => $user['name'],
-                    'image' => $profileImages[$user['email']]['profile_image_url'] === 'https://diuacm.com/images/user.png' ? null : $profileImages[$user['email']]['profile_image_url'],
+                    'image' => $image,
                     'username' => $user['username'],
                     'email' => $user['email'],
                     'phone' => $user['phone'],
