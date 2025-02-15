@@ -4,18 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SolveStatResource\Pages;
 use App\Models\SolveStat;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 
 class SolveStatResource extends Resource
@@ -30,67 +22,113 @@ class SolveStatResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required()
-                    ->searchable(),
+                Forms\Components\Section::make('Participant Information')
+                    ->description('Select the participant and event details')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('user_id')
+                                    ->relationship('user', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('name')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('email')
+                                            ->required()
+                                            ->email(),
+                                    ])
+                                    ->label('Participant'),
 
-                Select::make('event_id')
-                    ->relationship('event', 'title')
-                    ->required()
-                    ->searchable(),
+                                Forms\Components\Select::make('event_id')
+                                    ->relationship('event', 'title')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->label('Contest/Event'),
+                            ]),
+                    ]),
 
-                TextInput::make('solve_count')
-                    ->required()
-                    ->integer()
-                    ->minValue(0),
+                Forms\Components\Section::make('Performance Metrics')
+                    ->description('Enter the solving statistics')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\TextInput::make('solve_count')
+                                    ->required()
+                                    ->integer()
+                                    ->minValue(0)
+                                    ->maxValue(999)
+                                    ->step(1)
+                                    ->suffix('problems')
+                                    ->hint('Number of problems solved during contest')
+                                    ->label('Contest Solves'),
 
-                TextInput::make('upsolve_count')
-                    ->required()
-                    ->integer()
-                    ->minValue(0),
+                                Forms\Components\TextInput::make('upsolve_count')
+                                    ->required()
+                                    ->integer()
+                                    ->minValue(0)
+                                    ->maxValue(999)
+                                    ->step(1)
+                                    ->suffix('problems')
+                                    ->hint('Number of problems solved after contest')
+                                    ->label('Upsolving Count'),
+                            ]),
+                    ]),
 
-                Checkbox::make('is_present')
-                    ->default(false),
+                Forms\Components\Section::make('Additional Details')
+                    ->schema([
+                        Forms\Components\Checkbox::make('is_present')
+                            ->default(false)
+                            ->inline(false)
+                            ->label('Was Present?')
+                            ->helperText('Check if the participant attended the event'),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?SolveStat $record): string => $record?->created_at?->diffForHumans() ?? '-'),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Placeholder::make('created_at')
+                                    ->label('Created Date')
+                                    ->content(fn(?SolveStat $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?SolveStat $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
-            ]);
+                                Forms\Components\Placeholder::make('updated_at')
+                                    ->label('Last Modified')
+                                    ->content(fn(?SolveStat $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                            ]),
+                    ])
+                    ->collapsible(),
+            ])
+            ->columns(1);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('user.name')
+                Tables\Columns\TextColumn::make('user.name')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('event.title')
+                Tables\Columns\TextColumn::make('event.title')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('solve_count')
+                Tables\Columns\TextColumn::make('solve_count')
                     ->sortable(),
 
-                TextColumn::make('upsolve_count')
+                Tables\Columns\TextColumn::make('upsolve_count')
                     ->sortable(),
 
-                IconColumn::make('is_present')
+                Tables\Columns\IconColumn::make('is_present')
                     ->boolean()
                     ->sortable(),
 
-                TextColumn::make('created_at')
+                Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('updated_at')
+                Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -99,12 +137,12 @@ class SolveStatResource extends Resource
                 //
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
