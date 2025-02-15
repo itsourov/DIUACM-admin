@@ -94,8 +94,9 @@ class RankListResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('session'),
+                TextColumn::make('users_count')->label('Connected Users')->counts('users')->badge(),
 
-                TextColumn::make('description'),
+                TextColumn::make('description')->toggleable()->toggledHiddenByDefault(),
             ])
             ->filters([
                 //

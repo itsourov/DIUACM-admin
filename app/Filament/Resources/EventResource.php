@@ -24,6 +24,8 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\CheckboxColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -162,8 +164,9 @@ class EventResource extends Resource
                 TextColumn::make('status'),
 
                 TextColumn::make('starting_at')
-                    ->label('Starting Date')
-                    ->date(),
+                    ->timezone('Asia/Dhaka')
+                    ->dateTime('M d, Y - h:i A')
+                    ->label('Starting Date'),
 
                 TextColumn::make('ending_at')
                     ->label('Ending Date')
@@ -174,7 +177,7 @@ class EventResource extends Resource
                     ->searchable()
                     ->toggleable()->toggledHiddenByDefault(),
 
-                TextColumn::make('open_for_attendance'),
+                IconColumn::make('open_for_attendance')->boolean(),
 
                 TextColumn::make('type'),
 
