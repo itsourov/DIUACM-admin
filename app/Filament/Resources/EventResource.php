@@ -153,6 +153,7 @@ class EventResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->defaultSort('starting_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
@@ -164,6 +165,7 @@ class EventResource extends Resource
                 TextColumn::make('status'),
 
                 TextColumn::make('starting_at')
+                ->sortable(true)
                     ->timezone('Asia/Dhaka')
                     ->dateTime('M d, Y - h:i A')
                     ->label('Starting Date'),
