@@ -16,6 +16,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
@@ -134,6 +135,14 @@ class EventResource extends Resource
                             ]),
                     ]),
 
+                Select::make('rankLists')
+                    ->label('Rated For')
+                    ->relationship('rankLists', 'title')
+                    ->visible(function ($get) {
+                        return $get('type') === EventTypes::CONTEST->value;
+                    })
+                    ->multiple()
+                    ->preload(),
                 Section::make('Event History')
                     ->schema([
                         Grid::make()
@@ -153,7 +162,7 @@ class EventResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-        ->defaultSort('starting_at', 'desc')
+            ->defaultSort('starting_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
@@ -165,7 +174,7 @@ class EventResource extends Resource
                 TextColumn::make('status'),
 
                 TextColumn::make('starting_at')
-                ->sortable(true)
+                    ->sortable(true)
                     ->timezone('Asia/Dhaka')
                     ->dateTime('M d, Y - h:i A')
                     ->label('Starting Date'),
