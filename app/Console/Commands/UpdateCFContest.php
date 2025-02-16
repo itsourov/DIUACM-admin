@@ -161,9 +161,10 @@ class UpdateCFContest extends Command
         $totalUpsolves = 0;
 
         foreach ($users as $user) {
+            // Modified to include both CONTESTANT and OUT_OF_COMPETITION participants
             $contestRow = $rows->first(function ($row) use ($user) {
                 return strtolower($row['party']['members'][0]['handle']) === strtolower($user->codeforces_handle)
-                    && $row['party']['participantType'] === 'CONTESTANT';
+                    && in_array($row['party']['participantType'], ['CONTESTANT', 'OUT_OF_COMPETITION']);
             });
 
             $practiceRow = $rows->first(function ($row) use ($user) {
@@ -184,22 +185,23 @@ class UpdateCFContest extends Command
                 'is_present' => !empty($contestRow),
             ];
 
-            // Add row to table data
+            // Add row to table data with participant type information
+            $participantType = !empty($contestRow) ? $contestRow['party']['participantType'] : 'N/A';
             $tableData[] = [
                 $user->codeforces_handle,
                 $stats['solve_count'],
                 $stats['upsolve_count'],
                 $stats['solve_count'] + $stats['upsolve_count'],
-                !empty($contestRow) ? '<fg=green>Yes</>' : '<fg=red>No</>'
+                !empty($contestRow) ? '<fg=green>' . $participantType . '</>' : '<fg=red>No</>',
             ];
         }
 
         $this->newLine();
         $this->components->info("  ├── Statistics for {$event->title}");
 
-        // Display stats table
+        // Display stats table with modified header
         $this->table(
-            ['Handle', 'Contest Solves', 'Upsolves', 'Total', 'Participated'],
+            ['Handle', 'Contest Solves', 'Upsolves', 'Total', 'Participation Type'],
             $tableData
         );
 
