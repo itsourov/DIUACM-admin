@@ -6,8 +6,8 @@ use App\Enums\EventAttendanceScopes;
 use App\Enums\EventTypes;
 use App\Enums\VisibilityStatuses;
 use App\Filament\Resources\EventResource\Pages;
+use App\Filament\Resources\EventResource\RelationManagers\RankListsRelationManager;
 use App\Filament\Resources\EventResource\RelationManagers\UsersRelationManager;
-use App\Filament\Resources\RankListResource\RelationManagers\EventsRelationManager;
 use App\Models\Event;
 use Carbon\Carbon;
 use Exception;
@@ -136,15 +136,7 @@ class EventResource extends Resource
                             ]),
                     ]),
 
-                Select::make('rankLists')
-                    ->label('Rated For')
-                    ->relationship('rankLists', 'title')
-                    ->visible(function ($get) {
-                        return $get('type') === EventTypes::CONTEST->value;
-                    })
-                    ->hiddenOn(EventsRelationManager::class)
-                    ->multiple()
-                    ->preload(),
+
                 Section::make('Event History')
                     ->schema([
                         Grid::make()
@@ -228,6 +220,7 @@ class EventResource extends Resource
     {
         return [
             UsersRelationManager::class,
+            RankListsRelationManager::class,
 
         ];
     }
