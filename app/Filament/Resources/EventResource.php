@@ -7,6 +7,7 @@ use App\Enums\EventTypes;
 use App\Enums\VisibilityStatuses;
 use App\Filament\Resources\EventResource\Pages;
 use App\Filament\Resources\EventResource\RelationManagers\UsersRelationManager;
+use App\Filament\Resources\RankListResource\RelationManagers\EventsRelationManager;
 use App\Models\Event;
 use Carbon\Carbon;
 use Exception;
@@ -141,6 +142,7 @@ class EventResource extends Resource
                     ->visible(function ($get) {
                         return $get('type') === EventTypes::CONTEST->value;
                     })
+                    ->hiddenOn(EventsRelationManager::class)
                     ->multiple()
                     ->preload(),
                 Section::make('Event History')

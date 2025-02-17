@@ -46,6 +46,7 @@ class EventsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
+            ->defaultSort('starting_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
