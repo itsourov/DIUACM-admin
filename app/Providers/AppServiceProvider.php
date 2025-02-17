@@ -23,8 +23,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(! app()->isProduction());
 
-        Notification::configureUsing(function (Notification $notification): void {
-            $notification->view('filament.notifications.notification');
-        });
+//        Notification::configureUsing(function (Notification $notification): void {
+//            $notification->view('filament.notifications.notification');
+//        });
     }
 }
