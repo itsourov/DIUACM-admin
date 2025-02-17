@@ -63,8 +63,8 @@ class CreateEvent extends CreateRecord
                 if ($contest['id'] == $contest_id) {
                     $this->form->fill([
                         'title' => $contest['name'],
-                        'starting_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'], )->toDateTimeString(),
-                        'ending_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'] + $contest['durationSeconds'], )->toDateTimeString(),
+                        'starting_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'])->toDateTimeString(),
+                        'ending_at' => Carbon::createFromTimestamp($contest['startTimeSeconds'] + $contest['durationSeconds'])->toDateTimeString(),
                         'event_link' => $contest_link,
                         'type' => EventTypes::CONTEST,
                         'status' => VisibilityStatuses::PUBLISHED,
@@ -88,36 +88,48 @@ class CreateEvent extends CreateRecord
     private function fetchAtCoderContest($contest_link): void
     {
         try {
-            $response = Http::get($contest_link);
+            // Initialize cURL
+            $ch = curl_init();
 
-            if (!$response->successful()) {
-                Notification::make()
-                    ->title('Failed to fetch AtCoder contest')
-                    ->warning()
-                    ->send();
-                return;
+            // Set cURL options
+            curl_setopt($ch, CURLOPT_URL, $contest_link);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+
+            // Execute cURL request
+            $html = curl_exec($ch);
+
+            // Check for cURL errors
+            if (curl_errno($ch)) {
+                throw new \Exception('Curl error: ' . curl_error($ch));
             }
 
-            $html = $response->body();
+            // Close cURL session
+            curl_close($ch);
+
+            if (!$html) {
+                throw new \Exception('Empty response from AtCoder');
+            }
 
             // Get title
-            preg_match('/<h1 class="text-center">(.*?)<\/h1>/s', $html, $titleMatches);
-            $title = isset($titleMatches[1]) ? trim(strip_tags($titleMatches[1])) : '';
+            preg_match('/<title>(.*?) - AtCoder<\/title>/i', $html, $titleMatches);
+            $title = isset($titleMatches[1]) ? trim($titleMatches[1]) : '';
 
-            // Get contest duration text
-            preg_match('/Contest Duration:.*?<time class=\'fixtime fixtime-full\'>(.*?)<\/time>.*?<time class=\'fixtime fixtime-full\'>(.*?)<\/time>/s', $html, $timeMatches);
+            // Get start time
+            preg_match('/Start:.*?<time class=\'fixtime fixtime-full\'>\s*(.*?)\s*<\/time>/s', $html, $startMatches);
 
-            if (!isset($timeMatches[1]) || !isset($timeMatches[2])) {
-                Notification::make()
-                    ->title('Could not find contest times')
-                    ->warning()
-                    ->send();
-                return;
+            // Get end time
+            preg_match('/Duration:.*?<time class=\'fixtime fixtime-full\'>\s*(.*?)\s*<\/time>/s', $html, $endMatches);
+
+            if (!isset($startMatches[1]) || !isset($endMatches[1])) {
+                throw new \Exception('Could not find contest times');
             }
 
             // Parse start and end times
-            $startTime = Carbon::parse($timeMatches[1]);
-            $endTime = Carbon::parse($timeMatches[2]);
+            $startTime = Carbon::parse(trim($startMatches[1]));
+            $endTime = Carbon::parse(trim($endMatches[1]));
 
             $this->form->fill([
                 'title' => $title,
@@ -141,7 +153,7 @@ class CreateEvent extends CreateRecord
     private function fetchVJudgeContest($contest_link): void
     {
         $html = Http::get($contest_link)->body();
-        preg_match('/<textarea[^>]*name="dataJson"[^>]*>(.*?)<\/textarea>/s', $html, $matches);
+        preg_match('/<textarea[^>]*name=\"dataJson\"[^>]*>(.*?)<\/textarea>/s', $html, $matches);
 
         if (isset($matches[1])) {
             $jsonText = $matches[1]; // Extracted JSON string
@@ -149,8 +161,8 @@ class CreateEvent extends CreateRecord
 
             $this->form->fill([
                 'title' => html_entity_decode($contest['title']),
-                'starting_at' => Carbon::createFromTimestamp($contest['begin'] / 1000, )->toDateTimeString(),
-                'ending_at' => Carbon::createFromTimestamp($contest['end'] / 1000, )->toDateTimeString(),
+                'starting_at' => Carbon::createFromTimestamp($contest['begin'] / 1000)->toDateTimeString(),
+                'ending_at' => Carbon::createFromTimestamp($contest['end'] / 1000)->toDateTimeString(),
                 'event_link' => $contest_link,
                 'type' => EventTypes::CONTEST,
                 'status' => VisibilityStatuses::PUBLISHED,
@@ -164,6 +176,4 @@ class CreateEvent extends CreateRecord
                 ->send();
         }
     }
-
-
 }
