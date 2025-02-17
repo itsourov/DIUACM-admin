@@ -113,6 +113,7 @@ class EventResource extends Resource
                         Grid::make()
                             ->schema([
                                 TextInput::make('event_link')
+                                    ->unique(ignoreRecord: true)
                                     ->url()
                                     ->columnSpan(1),
 
