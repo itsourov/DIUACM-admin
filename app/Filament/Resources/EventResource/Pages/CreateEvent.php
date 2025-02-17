@@ -117,19 +117,17 @@ class CreateEvent extends CreateRecord
             preg_match('/<title>(.*?) - AtCoder<\/title>/i', $html, $titleMatches);
             $title = isset($titleMatches[1]) ? trim($titleMatches[1]) : '';
 
-            // Get start time
-            preg_match('/Start:.*?<time class=\'fixtime fixtime-full\'>\s*(.*?)\s*<\/time>/s', $html, $startMatches);
-
-            // Get end time
-            preg_match('/Duration:.*?<time class=\'fixtime fixtime-full\'>\s*(.*?)\s*<\/time>/s', $html, $endMatches);
+            // Get start and end times from JavaScript variables
+            preg_match('/var startTime = moment\("([^"]+)"\);/', $html, $startMatches);
+            preg_match('/var endTime = moment\("([^"]+)"\);/', $html, $endMatches);
 
             if (!isset($startMatches[1]) || !isset($endMatches[1])) {
                 throw new \Exception('Could not find contest times');
             }
 
             // Parse start and end times
-            $startTime = Carbon::parse(trim($startMatches[1]));
-            $endTime = Carbon::parse(trim($endMatches[1]));
+            $startTime = Carbon::parse($startMatches[1]);
+            $endTime = Carbon::parse($endMatches[1]);
 
             $this->form->fill([
                 'title' => $title,
