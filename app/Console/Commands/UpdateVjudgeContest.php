@@ -3,331 +3,457 @@
 namespace App\Console\Commands;
 
 use App\Models\Event;
+use App\Models\RankList;
 use App\Models\SolveStat;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\PromptsForMissingInput;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Collection;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use DateTime;
+use DateTimeZone;
+use Exception;
 
-class UpdateVjudgeContest extends Command implements PromptsForMissingInput
+class UpdateVjudgeContest extends Command
 {
-    protected $signature = 'app:update-vjudge-contest {event_id} {JSESSIONlD}';
+    protected $signature = 'app:update-vjudge-contest
+                          {--session-id= : Vjudge session ID for authentication}
+                          {--no-interactive : Run without interactive prompts}';
 
-    protected $description = 'Update solve statistics for a Vjudge contest with participant data';
+    protected $description = 'Update solve statistics for Vjudge contests';
 
-    private const VJUDGE_API_BASE = 'https://vjudge.net';
-    private const MAX_PROBLEMS = 50;
-
-    private array $stats = [
-        'processed' => 0,
-        'updated' => 0,
-        'errors' => 0,
-        'skipped' => 0,
+    private const VJUDGE_API = [
+        'BASE_URL' => 'https://vjudge.net',
+        'ENDPOINTS' => [
+            'USER_UPDATE' => '/user/update',
+            'CONTEST_RANK' => '/contest/rank/single'
+        ]
     ];
 
-    public function handle(): int
-    {
-        $this->displayHeader();
+    private const CACHE_KEY = 'vjudge_session_id';
+    private const CACHE_TTL = 86400;
 
+    private int $totalProcessed = 0;
+    private int $totalEvents = 0;
+    private int $successfulUpdates = 0;
+    private int $failedUpdates = 0;
+    private ?string $sessionId = null;
+    private ?string $authenticatedUsername = null;
+    private DateTime $startTime;
+    private string $currentUser;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->startTime = new DateTime('2025-02-20 09:47:36', new DateTimeZone('UTC'));
+        $this->currentUser = 'itsourov';
+    }
+
+    public function handle(): void
+    {
+        $this->newLine();
+        $this->components->info('🚀 Starting Vjudge Contest Update Process');
+        $this->components->info("Started by {$this->currentUser} at {$this->startTime->format('Y-m-d H:i:s')} UTC");
+        $this->newLine();
+
+        if (!$this->handleAuthentication()) {
+            return;
+        }
+
+        $this->components->task('Loading ranklists and events', function() {
+            $rankLists = RankList::where('is_archived', false)
+                ->with([
+                    'events' => function ($query) {
+                        $query->whereRaw('event_link LIKE ?', ['%vjudge.net%']);
+                    },
+                    'events.rankLists.users' => function ($query) {
+                        $query->whereNotNull('vjudge_handle')
+                            ->select('users.id', 'users.vjudge_handle');
+                    }
+                ])
+                ->get();
+
+            $events = $rankLists->pluck('events')->flatten()->unique('id');
+            $this->totalEvents = $events->count();
+
+            if ($this->totalEvents === 0) {
+                $this->components->warn('No Vjudge contests found to process');
+                return false;
+            }
+
+            $this->line("Found {$this->totalEvents} Vjudge contests to process");
+            $this->newLine();
+
+            foreach ($events as $event) {
+                $this->processEvent($event);
+            }
+
+            return true;
+        });
+
+        $this->displaySummary();
+    }
+
+    private function handleAuthentication(): bool
+    {
+        $noInteractive = $this->option('no-interactive');
+        $this->sessionId = $this->option('session-id');
+
+        // If running non-interactively, use provided session ID or proceed without auth
+        if ($noInteractive) {
+            if ($this->sessionId) {
+                $validationResult = $this->validateSession($this->sessionId);
+                if ($validationResult['success']) {
+                    $this->authenticatedUsername = $validationResult['username'];
+                    $this->components->info("✓ Authenticated as: {$this->authenticatedUsername}");
+                } else {
+                    $this->components->warn("Invalid session ID provided, proceeding without authentication");
+                    $this->sessionId = null;
+                }
+            }
+            return true;
+        }
+
+        // Try to get cached session ID if none provided
+        if (!$this->sessionId) {
+            $this->sessionId = Cache::get(self::CACHE_KEY);
+        }
+
+        // Validate existing session ID if available
+        if ($this->sessionId) {
+            $validationResult = $this->validateSession($this->sessionId);
+            if ($validationResult['success']) {
+                $this->authenticatedUsername = $validationResult['username'];
+                if (!$this->confirm("Currently authenticated as {$this->authenticatedUsername}. Continue with this session?")) {
+                    $this->sessionId = null;
+                    Cache::forget(self::CACHE_KEY);
+                }
+            } else {
+                $this->components->warn("Cached session is invalid");
+                $this->sessionId = null;
+                Cache::forget(self::CACHE_KEY);
+            }
+        }
+
+        // If no valid session, ask for new one
+        if (!$this->sessionId) {
+            if ($this->confirm('Would you like to authenticate with Vjudge?', true)) {
+                $attempts = 0;
+                $maxAttempts = 3;
+
+                while ($attempts < $maxAttempts) {
+                    $this->sessionId = $this->askWithoutQuotes('Please enter your Vjudge session ID (JSESSIONlD):');
+                    $validationResult = $this->validateSession($this->sessionId);
+
+                    if ($validationResult['success']) {
+                        $this->authenticatedUsername = $validationResult['username'];
+                        $this->components->info("✓ Successfully authenticated as: {$this->authenticatedUsername}");
+
+                        // Cache the successful session ID
+                        if ($this->confirm('Would you like to remember this session for 24 hours?', true)) {
+                            Cache::put(self::CACHE_KEY, $this->sessionId, self::CACHE_TTL);
+                            $this->components->info('Session cached successfully');
+                        }
+
+                        break;
+                    }
+
+                    $attempts++;
+                    if ($attempts < $maxAttempts) {
+                        $this->components->error("Invalid session ID. Please try again ({$attempts}/{$maxAttempts})");
+                    } else {
+                        $this->components->error("Maximum authentication attempts reached");
+                        if (!$this->confirm('Would you like to continue without authentication?', true)) {
+                            return false;
+                        }
+                        $this->sessionId = null;
+                    }
+                }
+            } else {
+                $this->components->warn("Proceeding without authentication (some contests may not be accessible)");
+                $this->sessionId = null;
+            }
+        }
+
+        return true;
+    }
+
+    private function validateSession(string $sessionId): array
+    {
         try {
-            $contest = $this->validateAndGetContest();
-            if (!$contest) {
-                return self::FAILURE;
+            $response = Http::withHeaders([
+                'accept' => '*/*',
+                'cookie' => "JSESSIONlD={$sessionId}",
+                'x-requested-with' => 'XMLHttpRequest'
+            ])->get(self::VJUDGE_API['BASE_URL'] . self::VJUDGE_API['ENDPOINTS']['USER_UPDATE']);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['username'])) {
+                    return [
+                        'success' => true,
+                        'username' => $data['username']
+                    ];
+                }
             }
-
-            $this->displayEventDetails($contest);
-
-            $contestId = $this->extractContestId($contest->event_link);
-            if (!$contestId) {
-                return self::FAILURE;
-            }
-
-            if (!$this->authenticateWithVjudge()) {
-                return self::FAILURE;
-            }
-
-            $contestData = $this->fetchContestData($contestId);
-            if (!$contestData) {
-                return self::FAILURE;
-            }
-
-            $participantStats = $this->processParticipantData($contestData);
-            $this->updateParticipantStats($contest, $participantStats);
-
-            $this->displaySummary();
-            return self::SUCCESS;
-
-        } catch (\Exception $e) {
-            $this->error('An unexpected error occurred!');
-            $this->error($e->getMessage());
-            Log::error('Vjudge contest update failed', [
-                'event_id' => $this->argument('event_id'),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return self::FAILURE;
+        } catch (Exception $e) {
+            Log::error("Vjudge session validation error: " . $e->getMessage());
         }
+
+        return [
+            'success' => false,
+            'error' => 'Invalid session'
+        ];
     }
 
-    private function displayHeader(): void
+    private function processEvent(Event $event): void
     {
-        $this->newLine();
-        $this->info('🚀 Vjudge Contest Statistics Updater');
-        $this->info('==========================================');
-        $this->table(
-            ['Current Time (UTC)', 'Executed By'],
-            [[
-                Carbon::now('UTC')->format('Y-m-d H:i:s'),
-                'itsourov'
-            ]]
+        $this->totalProcessed++;
+        $this->components->twoColumnDetail(
+            "Processing Event [{$this->totalProcessed}/{$this->totalEvents}]",
+            $event->title
         );
-        $this->newLine();
-    }
 
-    private function displayEventDetails(Event $contest): void
-    {
-        $this->info('📝 Event Details:');
-        $this->table(
-            ['ID', 'Title', 'Link'],
-            [[
-                $contest->id,
-                $contest->title,
-                $contest->event_link
-            ]]
-        );
-        $this->newLine();
-    }
-
-    private function validateAndGetContest(): ?Event
-    {
-        $contest = Event::with('users')->find($this->argument('event_id'));
-
-        if (!$contest) {
-            $this->error('❌ Contest not found with ID: ' . $this->argument('event_id'));
-            return null;
+        $contestId = $this->extractContestId($event->event_link);
+        if (!$contestId) {
+            $this->components->error("  ├── Invalid contest URL: {$event->event_link}");
+            $this->failedUpdates++;
+            return;
         }
 
-        if (!str_contains($contest->event_link, 'vjudge.net')) {
-            $this->error('❌ Invalid contest: Not a Vjudge contest URL');
-            return null;
+        $users = $event->rankLists
+            ->pluck('users')
+            ->flatten()
+            ->unique('id')
+            ->values();
+
+        if ($users->isEmpty()) {
+            $this->components->warn("  ├── No users found with Vjudge handles");
+            $this->failedUpdates++;
+            return;
         }
 
-        return $contest;
+        $this->line("  ├── Found " . $users->count() . " users to process");
+        $this->processContest($event, $users, $contestId);
     }
 
     private function extractContestId(string $eventLink): ?string
     {
-        $parsedUrl = parse_url($eventLink);
-        $pathSegments = explode('/', trim($parsedUrl['path'] ?? '', '/'));
-
-        if ($pathSegments[0] !== 'contest' || !isset($pathSegments[1])) {
-            $this->error('❌ Invalid contest URL format');
-            return null;
+        if (preg_match('/contest\\/(\\d+)/', $eventLink, $matches)) {
+            return $matches[1];
         }
-
-        return $pathSegments[1];
+        return null;
     }
 
-    private function authenticateWithVjudge(): bool
+    private function processContest(Event $event, Collection $users, string $contestId): void
     {
-        $this->info('🔄 Authenticating with Vjudge...');
+        try {
+            $this->line("  ├── Fetching standings from Vjudge API");
 
-        $response = Http::withHeaders($this->getRequestHeaders())
-            ->get(self::VJUDGE_API_BASE . '/user/update');
-
-        $email = $response->json('email');
-
-        if (!$email) {
-            $this->error('❌ Vjudge authentication failed');
-            return false;
-        }
-
-        $this->info('✅ Authenticated successfully as: ' . $email);
-        return true;
-    }
-
-    private function fetchContestData(string $contestId): ?array
-    {
-        $this->info('🔄 Fetching contest data...');
-
-        $response = Http::withHeaders($this->getRequestHeaders())
-            ->get(self::VJUDGE_API_BASE . '/contest/rank/single/' . $contestId);
-
-        if (!$response->successful()) {
-            $this->error('❌ Failed to fetch contest data');
-            return null;
-        }
-
-        $data = $response->json();
-        if (empty($data)) {
-            $this->error('❌ No data received for contest ID: ' . $contestId);
-            return null;
-        }
-
-        return $data;
-    }
-
-    private function processParticipantData(array $contestData): array
-    {
-        $this->info('🔄 Processing participant data...');
-
-        $time = ($contestData['length'] ?? 0) / 1000;
-        $participants = $contestData['participants'] ?? [];
-        $submissions = $contestData['submissions'] ?? [];
-
-        $data = $this->initializeParticipantData($participants);
-        $data = $this->processSubmissions($data, $submissions, $participants, $time);
-
-        return $data;
-    }
-
-    private function initializeParticipantData(array $participants): array
-    {
-        return array_reduce(array_keys($participants), function ($carry, $id) use ($participants) {
-            $carry[$participants[$id][0]] = [
-                'solveCount' => 0,
-                'upSolveCount' => 0,
-                'absent' => true,
-                'solved' => array_fill(0, self::MAX_PROBLEMS, 0),
+            $headers = [
+                'accept' => '*/*',
+                'User-Agent' => 'Mozilla/5.0',
+                'x-requested-with' => 'XMLHttpRequest'
             ];
-            return $carry;
-        }, []);
-    }
 
-    private function processSubmissions(array $data, array $submissions, array $participants, int $contestTime): array
-    {
-        $this->output->progressStart(count($submissions));
-
-        foreach ($submissions as $submission) {
-            [$participantId, $problemIndex, $accepted, $submitTime] = $submission;
-            $userName = $participants[$participantId][0] ?? '';
-
-            if (isset($data[$userName])) {
-                $data[$userName]['absent'] = false;
-
-                if ($accepted) {
-                    if ($data[$userName]['solved'][$problemIndex] === 0) {
-                        if ($submitTime <= $contestTime) {
-                            $data[$userName]['solveCount']++;
-                        } else {
-                            $data[$userName]['upSolveCount']++;
-                        }
-                        $data[$userName]['solved'][$problemIndex] = 1;
-                    }
-                }
+            if ($this->sessionId) {
+                $headers['cookie'] = "JSESSIONlD={$this->sessionId}";
             }
 
-            $this->output->progressAdvance();
-        }
+            $response = Http::withHeaders($headers)
+                ->get(self::VJUDGE_API['BASE_URL'] . self::VJUDGE_API['ENDPOINTS']['CONTEST_RANK'] . '/' . $contestId);
 
-        $this->output->progressFinish();
-        $this->newLine();
-        return $data;
+            if (!$response->successful()) {
+                $error = $this->sessionId ? "Failed to fetch data" : "AUTH_REQUIRED";
+                $this->components->error("  ├── API request failed: " . $error);
+                Log::error("Vjudge API error for contest {$contestId}: " . $error);
+                $this->failedUpdates++;
+                return;
+            }
+
+            $data = $response->json();
+            if (!$this->isValidContestData($data)) {
+                $this->components->error("  ├── Invalid contest data format");
+                $this->failedUpdates++;
+                return;
+            }
+
+            $processedData = $this->processVjudgeData($data);
+            $this->updateSolveStats($event, $users, $processedData);
+
+            $this->successfulUpdates++;
+            $this->components->info("  └── Update completed successfully");
+
+        } catch (Exception $e) {
+            $this->components->error("  └── Error: " . $e->getMessage());
+            Log::error("Error processing contest {$contestId}: " . $e->getMessage());
+            $this->failedUpdates++;
+        }
     }
 
-    private function updateParticipantStats(Event $contest, array $participantStats): void
+    private function isValidContestData($data): bool
     {
-        $this->info('🔄 Updating participant statistics...');
+        return is_array($data) &&
+            isset($data['length']) &&
+            is_numeric($data['length']) &&
+            isset($data['participants']) &&
+            is_array($data['participants']);
+    }
 
-        $users = $this->getContestUsers($contest);
-        $contestUserIds = $contest->users->pluck('id')->toArray();
+    private function processVjudgeData(array $data): array
+    {
+        $timeLimit = $data['length'] / 1000;
+        $processed = [];
 
-        $bar = $this->output->createProgressBar(count($users));
-        $bar->start();
+        foreach ($data['participants'] as $participant) {
+            $username = $participant[0];
+            $processed[$username] = [
+                'solve_count' => 0,
+                'upsolve_count' => 0,
+                'absent' => true,
+                'solved' => array_fill(0, 50, 0)
+            ];
+        }
+
+        if (isset($data['submissions']) && is_array($data['submissions'])) {
+            foreach ($data['submissions'] as [$participantId, $problemIndex, $isAccepted, $timestamp]) {
+                $participant = $data['participants'][$participantId] ?? null;
+                if (!$participant) continue;
+
+                $username = $participant[0];
+                if (!isset($processed[$username])) continue;
+
+                if ($timestamp <= $timeLimit) {
+                    $processed[$username]['absent'] = false;
+                    if ($isAccepted === 1 && !$processed[$username]['solved'][$problemIndex]) {
+                        $processed[$username]['solve_count']++;
+                        $processed[$username]['solved'][$problemIndex] = 1;
+                    }
+                } elseif ($isAccepted === 1 && !$processed[$username]['solved'][$problemIndex]) {
+                    $processed[$username]['upsolve_count']++;
+                    $processed[$username]['solved'][$problemIndex] = 1;
+                }
+            }
+        }
+
+        return $processed;
+    }
+
+    private function updateSolveStats(Event $event, Collection $users, array $processedData): void
+    {
+        $this->line("  ├── Updating database records");
+
+        // Delete existing solve stats
+        SolveStat::where('event_id', $event->id)->delete();
+
+        $solveStats = [];
+        $tableData = [];
+        $totalSolves = 0;
+        $totalUpsolves = 0;
 
         foreach ($users as $user) {
-            $vjudgeHandle = $user->vjudge_handle;
+            $stats = $processedData[$user->vjudge_handle] ?? null;
+            $solveCount = $stats ? $stats['solve_count'] : 0;
+            $upsolveCount = $stats ? $stats['upsolve_count'] : 0;
 
-            if (!$vjudgeHandle) {
-                $this->stats['skipped']++;
-                $this->warn("⚠️ Skipped user {$user->name} - No Vjudge handle found");
-                $bar->advance();
-                continue;
-            }
+            $totalSolves += $solveCount;
+            $totalUpsolves += $upsolveCount;
 
-            try {
-                $stats = $participantStats[$vjudgeHandle] ?? null;
+            $solveStats[] = [
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+                'solve_count' => $solveCount,
+                'upsolve_count' => $upsolveCount,
+                'is_present' => $stats ? !$stats['absent'] : false
+            ];
 
-                if ($stats) {
-                    // Adjust stats based on whether user is in the contest
-//                    if (!in_array($user->id, $contestUserIds)) {
-//                        // User not in contest - combine solve_count and upsolve_count
-//                        $totalSolves = ($stats['solveCount'] ?? 0) + ($stats['upSolveCount'] ?? 0);
-//                        $stats['upSolveCount'] = $totalSolves;
-//                        $stats['solveCount'] = 0;
-//                    }
-
-                    $this->updateUserStats($user, $contest, $stats);
-                    $this->stats['updated']++;
-                }
-            } catch (\Exception $e) {
-                $this->stats['errors']++;
-                Log::error('Failed to update stats for user', [
-                    'user_id' => $user->id,
-                    'vjudge_handle' => $vjudgeHandle,
-                    'error' => $e->getMessage()
-                ]);
-            }
-
-            $this->stats['processed']++;
-            $bar->advance();
+            $tableData[] = [
+                $user->vjudge_handle,
+                $solveCount,
+                $upsolveCount,
+                $solveCount + $upsolveCount,
+                $stats && !$stats['absent'] ? '<fg=green>Yes</>' : '<fg=red>No</>'
+            ];
         }
 
-        $bar->finish();
-        $this->newLine(2);
-    }
-
-    private function getContestUsers(Event $contest): Collection
-    {
-        return $contest->rankLists()
-            ->with('users')
-            ->get()
-            ->pluck('users')
-            ->flatten()
-            ->unique('id');
-    }
-
-    private function updateUserStats($user, Event $contest, ?array $stats): void
-    {
-
-        SolveStat::updateOrCreate(
-            [
-                'event_id' => $contest->id,
-                'user_id' => $user->id,
-            ],
-            [
-                'solve_count' => $stats['solveCount'] ?? 0,
-                'upsolve_count' => $stats['upSolveCount'] ?? 0,
-                'is_present' => !($stats['absent'] ?? true),
-                'error' => null,
-            ]
+        // Display stats table
+        $this->newLine();
+        $this->table(
+            ['Handle', 'Contest Solves', 'Upsolves', 'Total', 'Present'],
+            $tableData
         );
+
+        // Show summary
+        $this->line("  ├── Summary:");
+        $this->line("  │   ├── Total Users: " . count($users));
+        $this->line("  │   ├── Total Contest Solves: <fg=yellow>{$totalSolves}</>");
+        $this->line("  │   ├── Total Upsolves: <fg=yellow>{$totalUpsolves}</>");
+        $this->line("  │   └── Total Problems Solved: <fg=yellow>" . ($totalSolves + $totalUpsolves) . "</>");
+
+        // Batch insert the solve stats
+        $chunks = array_chunk($solveStats, 100);
+        foreach ($chunks as $chunk) {
+            SolveStat::insert($chunk);
+        }
     }
 
-    private function getRequestHeaders(): array
-    {
-        return [
-            'Accept' => 'application/json',
-            'Cookie' => 'JSESSIONlD=' . $this->argument('JSESSIONlD')
-        ];
-    }
+
 
     private function displaySummary(): void
     {
-        $this->info('📊 Update Summary:');
-        $this->table(
-            ['Metric', 'Count'],
-            [
-                ['Total Processed', $this->stats['processed']],
-                ['Successfully Updated', $this->stats['updated']],
-                ['Errors', $this->stats['errors']],
-                ['Skipped (No Vjudge Handle)', $this->stats['skipped']],
-            ]
-        );
+        $endTime = new DateTime();
+        $duration = $endTime->getTimestamp() - $this->startTime->getTimestamp();
 
         $this->newLine();
-        $this->info('✅ Contest statistics update completed at: ' . Carbon::now('UTC')->format('Y-m-d H:i:s'));
+        $this->components->info('📊 Update Process Summary');
+        $this->newLine();
+        $this->line("Started at:               <fg=blue>{$this->startTime->format('Y-m-d H:i:s')} UTC</>");
+        $this->line("Completed at:             <fg=blue>{$endTime->format('Y-m-d H:i:s')} UTC</>");
+        $this->line("Duration:                 <fg=blue>" . $this->formatDuration($duration) . "</>");
+        $this->line("Executed by:              <fg=blue>{$this->currentUser}</>");
+        $this->line("Total Events Processed:    <fg=yellow>{$this->totalEvents}</>");
+        $this->line("Successful Updates:        <fg=green>{$this->successfulUpdates}</>");
+        $this->line("Failed Updates:           <fg=red>{$this->failedUpdates}</>");
+        $this->newLine();
+
+        if ($this->failedUpdates > 0) {
+            $this->components->warn('Some updates failed. Check the logs for more details.');
+        } else {
+            $this->components->info('✨ All updates completed successfully!');
+        }
+        $this->newLine();
+
+        // Display authentication status in summary
+        if ($this->authenticatedUsername) {
+            $this->line("Authentication Status:    <fg=green>Authenticated as {$this->authenticatedUsername}</>");
+        } else {
+            $this->line("Authentication Status:    <fg=yellow>Not authenticated</>");
+        }
+        $this->newLine();
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        if ($seconds < 60) {
+            return $seconds . ' seconds';
+        }
+
+        $minutes = floor($seconds / 60);
+        $seconds = $seconds % 60;
+
+        if ($minutes < 60) {
+            return sprintf('%d minutes %d seconds', $minutes, $seconds);
+        }
+
+        $hours = floor($minutes / 60);
+        $minutes = $minutes % 60;
+
+        return sprintf('%d hours %d minutes %d seconds', $hours, $minutes, $seconds);
+    }
+
+    private function askWithoutQuotes(string $question): string
+    {
+        $answer = $this->ask($question);
+        return trim($answer, '"\''); // Remove quotes if present
     }
 }
