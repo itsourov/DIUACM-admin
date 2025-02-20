@@ -11,6 +11,10 @@ class EditEvent extends EditRecord
     protected static string $resource = EventResource::class;
 
 
+    public function getTitle(): string
+    {
+        return parent::getTitle(). ' - '. $this->record->title;
+    }
 
     protected function getHeaderActions(): array
     {

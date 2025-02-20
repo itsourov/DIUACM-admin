@@ -10,6 +10,11 @@ class EditRankList extends EditRecord
 {
     protected static string $resource = RankListResource::class;
 
+    public function getTitle(): string
+    {
+        return parent::getTitle(). ' - '. $this->record->title;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -29,7 +29,7 @@ class RankList extends Model
 
     public function events(): BelongsToMany
     {
-        return $this->belongsToMany(Event::class)->withPivot('weight');
+        return $this->belongsToMany(Event::class)->withPivot(['weight', 'strict_attendance']);
     }
 
     public function users(): BelongsToMany

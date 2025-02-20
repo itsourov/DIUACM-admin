@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->foreignId('event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('rank_list_id')->constrained()->cascadeOnDelete();
             $table->double('weight')->default(1);
+            $table->boolean('strict_attendance')->default(false);
             $table->timestamps();
         });
     }
