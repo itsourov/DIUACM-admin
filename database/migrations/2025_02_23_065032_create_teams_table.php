@@ -7,17 +7,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('universities', function (Blueprint $table) {
+        Schema::create('teams', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('address')->nullable();
-            $table->string('city')->nullable();
+            $table->foreignId('contest_id')->constrained('contests');
+            $table->foreignUuid('coach_id')->constrained('users', 'id');
+            $table->unsignedBigInteger('rank')->nullable();
+            $table->unsignedBigInteger('solve_count')->default(0);
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('universities');
+        Schema::dropIfExists('teams');
     }
 };

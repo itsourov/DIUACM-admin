@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->string('name');
             $table->enum('type', ContestType::toArray())->default(ContestType::IUPC);
             $table->dateTime('date');
-            $table->string('university_id');
+            $table->foreignId('university_id')->constrained();
             $table->string('description')->nullable();
             $table->timestamps();
         });

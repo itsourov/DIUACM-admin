@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ContestType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contest extends Model
 {
@@ -27,5 +28,9 @@ class Contest extends Model
     public function university(): BelongsTo
     {
         return $this->belongsTo(University::class);
+    }
+    public function teams(): HasMany
+    {
+        return $this->hasMany(Team::class);
     }
 }

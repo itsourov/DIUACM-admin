@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 
-class User extends Authenticatable  implements FilamentUser
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -35,10 +35,11 @@ class User extends Authenticatable  implements FilamentUser
         parent::boot();
         static::creating(function ($model) {
             if (!$model->id) {
-                $model->id = (string) Str::uuid(); // Generate UUID on create
+                $model->id = (string)Str::uuid(); // Generate UUID on create
             }
         });
     }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -94,6 +95,12 @@ class User extends Authenticatable  implements FilamentUser
     public function events(): BelongsToMany
     {
         return $this->belongsToMany(Event::class)->withTimestamps();
+    }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_members')
+            ->withTimestamps();
     }
 
 

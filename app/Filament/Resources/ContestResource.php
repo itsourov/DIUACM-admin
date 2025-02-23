@@ -6,6 +6,7 @@ use App\Enums\ContestType;
 use App\Enums\EventTypes;
 use App\Filament\Resources\ContestResource\Pages;
 use App\Models\Contest;
+use App\Models\University;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
@@ -14,7 +15,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\DeleteAction;
@@ -26,14 +29,12 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-
+use Illuminate\Database\Eloquent\Collection;
 
 class ContestResource extends Resource
 {
     protected static ?string $model = Contest::class;
-
     protected static ?string $slug = 'contests';
-
     protected static ?string $navigationIcon = 'heroicon-o-trophy';
     protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $navigationGroup = 'Contest History Management';
@@ -43,12 +44,10 @@ class ContestResource extends Resource
         return static::getModel()::count();
     }
 
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // Basic Information Section
                 Section::make('Basic Information')
                     ->schema([
                         TextInput::make('name')
@@ -69,18 +68,17 @@ class ContestResource extends Resource
                     ])
                     ->columns(2),
 
-                // Location Section
                 Section::make('Location')
                     ->schema([
                         Select::make('university_id')
                             ->relationship('university', 'name')
+                            ->createOptionModalHeading('Create University')
                             ->createOptionForm(UniversityResource::form($form)->getComponents())
                             ->required()
                             ->preload()
                             ->searchable(),
                     ]),
 
-                // Details Section
                 Section::make('Additional Details')
                     ->schema([
                         Textarea::make('description')
@@ -88,7 +86,6 @@ class ContestResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                // Metadata Section
                 Section::make('Metadata')
                     ->schema([
                         Placeholder::make('created_at')
@@ -128,6 +125,12 @@ class ContestResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->badge(),
+
+                TextColumn::make('teams_count')
+                    ->sortable()
+                    ->counts('teams')
+                    ->badge(),
+
                 TextColumn::make('type')
                     ->badge()
                     ->sortable(),
@@ -151,11 +154,60 @@ class ContestResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    DeleteAction::make()
+                        ->label('Safe Delete')
+                        ->before(function (DeleteAction $action, Contest $contest) {
+                            if ($contest->teams()->exists()) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Failed to delete!')
+                                    ->body('Contest has teams. Use force delete to remove the contest and its teams.')
+                                    ->persistent()
+                                    ->send();
+
+                                $action->cancel();
+                            }
+                        }),
+                    DeleteAction::make('forceDelete')
+                        ->label('Delete with Teams')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalDescription('This will permanently delete the contest and all associated teams.')
+                        ->action(function (Contest $record) {
+                            $record->teams()->delete();
+                            $record->delete();
+                        }),
+                ]),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->before(function (DeleteBulkAction $action, Collection $records) {
+                            foreach ($records as $contest) {
+                                if ($contest->teams()->exists()) {
+                                    Notification::make()
+                                        ->danger()
+                                        ->title('Failed to delete!')
+                                        ->body('One or more contests have associated teams. Use force delete to remove contests and their teams.')
+                                        ->persistent()
+                                        ->send();
+
+                                    $action->cancel();
+                                }
+                            }
+                        }),
+                    DeleteBulkAction::make('forceBulkDelete')
+                        ->label('Delete with Teams')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalDescription('This will permanently delete the selected contests and all their associated teams.')
+                        ->action(function (Collection $records) {
+                            $records->each(function ($contest) {
+                                $contest->teams()->delete();
+                                $contest->delete();
+                            });
+                        }),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-trophy')
