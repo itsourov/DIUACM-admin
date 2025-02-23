@@ -85,8 +85,7 @@ class UniversityResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->searchable()
-                    ->sortable()
-                    ->copyable(),
+                    ->sortable(),
 
                 TextColumn::make('city')
                     ->searchable()
