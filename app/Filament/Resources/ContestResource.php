@@ -9,7 +9,9 @@ use App\Models\Contest;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -46,35 +48,59 @@ class ContestResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name')
-                    ->required(),
+                // Basic Information Section
+                Section::make('Basic Information')
+                    ->schema([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpanFull(),
 
-                DateTimePicker::make('date')
-                    ->seconds(false)
-                    ->default(today())
-                    ->timezone('Asia/Dhaka'),
+                        Select::make('type')
+                            ->enum(ContestType::class)
+                            ->options(ContestType::class)
+                            ->required(),
 
+                        DateTimePicker::make('date')
+                            ->seconds(false)
+                            ->default(today())
+                            ->timezone('Asia/Dhaka')
+                            ->required(),
+                    ])
+                    ->columns(2),
 
-                Select::make('university_id')
-                    ->relationship('university', 'name')
-                    ->createOptionForm(UniversityResource::form($form)->getComponents())
-                    ->required()
-                    ->preload(),
+                // Location Section
+                Section::make('Location')
+                    ->schema([
+                        Select::make('university_id')
+                            ->relationship('university', 'name')
+                            ->createOptionForm(UniversityResource::form($form)->getComponents())
+                            ->required()
+                            ->preload()
+                            ->searchable(),
+                    ]),
 
-                TextInput::make('description'),
+                // Details Section
+                Section::make('Additional Details')
+                    ->schema([
+                        Textarea::make('description')
+                            ->maxLength(65535)
+                            ->columnSpanFull(),
+                    ]),
 
-                Select::make('type')
-                    ->enum(ContestType::class)
-                    ->options(ContestType::class)
-                    ->required(),
+                // Metadata Section
+                Section::make('Metadata')
+                    ->schema([
+                        Placeholder::make('created_at')
+                            ->label('Created Date')
+                            ->content(fn(?Contest $record): string => $record?->created_at?->diffForHumans() ?? '-'),
 
-                Placeholder::make('created_at')
-                    ->label('Created Date')
-                    ->content(fn(?Contest $record): string => $record?->created_at?->diffForHumans() ?? '-'),
-
-                Placeholder::make('updated_at')
-                    ->label('Last Modified Date')
-                    ->content(fn(?Contest $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                        Placeholder::make('updated_at')
+                            ->label('Last Modified Date')
+                            ->content(fn(?Contest $record): string => $record?->updated_at?->diffForHumans() ?? '-'),
+                    ])
+                    ->columns(2)
+                    ->collapsed(),
             ]);
     }
 
