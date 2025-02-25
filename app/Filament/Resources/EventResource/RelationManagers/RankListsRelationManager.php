@@ -36,9 +36,7 @@ class RankListsRelationManager extends RelationManager
                                     ->minValue(0.0)
                                     ->maxValue(1.0),
 
-                                Checkbox::make('strict_attendance')
-                                    ->label('Strict Attendance')
-                                    ->helperText('If enabled then the users who didn\'t gave attendance their solve count wont be counted.'),
+
                             ]),
                         Tabs\Tab::make('Event Info')
                             ->schema(RankListResource::form($form)->getComponents()),
@@ -55,8 +53,6 @@ class RankListsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('weight')->badge()->sortable(),
-                Tables\Columns\ToggleColumn::make('strict_attendance')
-                    ->sortable(),
                 TextColumn::make('session')->badge(),
 
             ])
@@ -81,9 +77,6 @@ class RankListsRelationManager extends RelationManager
                             ->minValue(0.0)
                             ->maxValue(1.0)
                             ->required(),
-                        Checkbox::make('strict_attendance')
-                            ->label('Strict Attendance')
-                            ->helperText('If enabled then the users who didn\'t gave attendance their solve count wont be counted.'),
 
 
                     ]),

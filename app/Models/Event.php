@@ -29,6 +29,7 @@ class Event extends Model
         'event_link',
         'event_password',
         'open_for_attendance',
+        'strict_attendance',
         'type',
         'attendance_scope',
     ];
@@ -39,6 +40,7 @@ class Event extends Model
             'starting_at' => 'datetime',
             'ending_at' => 'datetime',
             'open_for_attendance' => 'boolean',
+            'strict_attendance' => 'boolean',
             'status' => VisibilityStatuses::class,
             'type' => EventTypes::class,
             'attendance_scope' => EventAttendanceScopes::class,
@@ -47,7 +49,7 @@ class Event extends Model
 
     public function rankLists(): BelongsToMany
     {
-        return $this->belongsToMany(RankList::class)->withPivot(['weight', 'strict_attendance']);
+        return $this->belongsToMany(RankList::class)->withPivot(['weight']);
     }
 
     public function users(): BelongsToMany

@@ -29,6 +29,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class EventResource extends Resource
@@ -125,6 +126,7 @@ class EventResource extends Resource
                         Grid::make()
                             ->schema([
                                 ToggleButtons::make('attendance_scope')
+                                    ->columnSpanFull()
                                     ->enum(EventAttendanceScopes::class)
                                     ->options(EventAttendanceScopes::class)
                                     ->default(EventAttendanceScopes::OPEN_FOR_ALL)
@@ -134,6 +136,10 @@ class EventResource extends Resource
                                 Checkbox::make('open_for_attendance')
                                     ->label('Open for Attendance')
                                     ->helperText('Check this if the event is ready for attendees'),
+
+                                Checkbox::make('strict_attendance')
+                                    ->label('Strict Attendance')
+                                    ->helperText('If enabled then the users who didn\'t gave attendance their solve count wont be counted.'),
                             ]),
                     ]),
 
@@ -182,8 +188,10 @@ class EventResource extends Resource
                 TextColumn::make('event_link')
                     ->searchable()
                     ->toggleable()->toggledHiddenByDefault(),
-
-                IconColumn::make('open_for_attendance')->boolean(),
+                ToggleColumn::make('open_for_attendance')
+                    ->sortable(),
+                ToggleColumn::make('strict_attendance')
+                    ->sortable(),
 
                 TextColumn::make('type'),
 

@@ -28,7 +28,7 @@ class MigrateOldInfo extends Command
      * @var string
      */
     protected $description = 'Command description';
-    protected string $baseUrl = 'https://diuacm.com/api';
+    protected string $baseUrl = 'https://master-vps.diuacm.com/api';
 
     /**
      * Execute the console command.

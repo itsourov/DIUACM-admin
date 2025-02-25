@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string('event_link')->nullable()->unique();
             $table->string('event_password')->nullable();
             $table->boolean('open_for_attendance');
+            $table->boolean('strict_attendance')->default(false);
             $table->enum('type', EventTypes::toArray())->default(EventTypes::CONTEST);
             $table->enum('attendance_scope', EventAttendanceScopes::toArray())->default(EventAttendanceScopes::OPEN_FOR_ALL);
             $table->timestamps();
