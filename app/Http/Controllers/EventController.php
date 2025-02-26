@@ -11,7 +11,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        return view('events.index');
+        return  EventResource::collection(Event::paginate(10));
     }
 
     public function store(EventRequest $request)
