@@ -17,7 +17,7 @@ use Exception;
 class UpdateVjudgeContest extends Command
 {
     protected $signature = 'app:update-vjudge-contest
-                          {--session-id= : Vjudge session ID for authentication}
+                          {--cookie= : Vjudge cookie for authentication}
                           {--no-interactive : Run without interactive prompts}';
 
     protected $description = 'Update solve statistics for Vjudge contests';
@@ -30,14 +30,14 @@ class UpdateVjudgeContest extends Command
         ]
     ];
 
-    private const CACHE_KEY = 'vjudge_session_id';
+    private const CACHE_KEY = 'vjudge_cookie';
     private const CACHE_TTL = 86400;
 
     private int $totalProcessed = 0;
     private int $totalEvents = 0;
     private int $successfulUpdates = 0;
     private int $failedUpdates = 0;
-    private ?string $sessionId = null;
+    private ?string $cookie = null;
     private ?string $authenticatedUsername = null;
     private DateTime $startTime;
     private string $currentUser;
@@ -97,62 +97,62 @@ class UpdateVjudgeContest extends Command
     private function handleAuthentication(): bool
     {
         $noInteractive = $this->option('no-interactive');
-        $this->sessionId = $this->option('session-id');
+        $this->cookie = $this->option('cookie');
 
-        // If running non-interactively, use provided session ID or proceed without auth
+        // If running non-interactively, use provided cookie or proceed without auth
         if ($noInteractive) {
-            if ($this->sessionId) {
-                $validationResult = $this->validateSession($this->sessionId);
+            if ($this->cookie) {
+                $validationResult = $this->validateCookie($this->cookie);
                 if ($validationResult['success']) {
                     $this->authenticatedUsername = $validationResult['username'];
                     $this->components->info("✓ Authenticated as: {$this->authenticatedUsername}");
                 } else {
-                    $this->components->warn("Invalid session ID provided, proceeding without authentication");
-                    $this->sessionId = null;
+                    $this->components->warn("Invalid cookie provided, proceeding without authentication");
+                    $this->cookie = null;
                 }
             }
             return true;
         }
 
-        // Try to get cached session ID if none provided
-        if (!$this->sessionId) {
-            $this->sessionId = Cache::get(self::CACHE_KEY);
+        // Try to get cached cookie if none provided
+        if (!$this->cookie) {
+            $this->cookie = Cache::get(self::CACHE_KEY);
         }
 
-        // Validate existing session ID if available
-        if ($this->sessionId) {
-            $validationResult = $this->validateSession($this->sessionId);
+        // Validate existing cookie if available
+        if ($this->cookie) {
+            $validationResult = $this->validateCookie($this->cookie);
             if ($validationResult['success']) {
                 $this->authenticatedUsername = $validationResult['username'];
                 if (!$this->confirm("Currently authenticated as {$this->authenticatedUsername}. Continue with this session?")) {
-                    $this->sessionId = null;
+                    $this->cookie = null;
                     Cache::forget(self::CACHE_KEY);
                 }
             } else {
-                $this->components->warn("Cached session is invalid");
-                $this->sessionId = null;
+                $this->components->warn("Cached cookie is invalid");
+                $this->cookie = null;
                 Cache::forget(self::CACHE_KEY);
             }
         }
 
-        // If no valid session, ask for new one
-        if (!$this->sessionId) {
+        // If no valid cookie, ask for new one
+        if (!$this->cookie) {
             if ($this->confirm('Would you like to authenticate with Vjudge?', true)) {
                 $attempts = 0;
                 $maxAttempts = 3;
 
                 while ($attempts < $maxAttempts) {
-                    $this->sessionId = $this->askWithoutQuotes('Please enter your Vjudge session ID (JSESSIONlD):');
-                    $validationResult = $this->validateSession($this->sessionId);
+                    $this->cookie = $this->askWithoutQuotes('Please enter your Vjudge cookie (entire cookie string):');
+                    $validationResult = $this->validateCookie($this->cookie);
 
                     if ($validationResult['success']) {
                         $this->authenticatedUsername = $validationResult['username'];
                         $this->components->info("✓ Successfully authenticated as: {$this->authenticatedUsername}");
 
-                        // Cache the successful session ID
-                        if ($this->confirm('Would you like to remember this session for 24 hours?', true)) {
-                            Cache::put(self::CACHE_KEY, $this->sessionId, self::CACHE_TTL);
-                            $this->components->info('Session cached successfully');
+                        // Cache the successful cookie
+                        if ($this->confirm('Would you like to remember this cookie for 24 hours?', true)) {
+                            Cache::put(self::CACHE_KEY, $this->cookie, self::CACHE_TTL);
+                            $this->components->info('Cookie cached successfully');
                         }
 
                         break;
@@ -160,30 +160,30 @@ class UpdateVjudgeContest extends Command
 
                     $attempts++;
                     if ($attempts < $maxAttempts) {
-                        $this->components->error("Invalid session ID. Please try again ({$attempts}/{$maxAttempts})");
+                        $this->components->error("Invalid cookie. Please try again ({$attempts}/{$maxAttempts})");
                     } else {
                         $this->components->error("Maximum authentication attempts reached");
                         if (!$this->confirm('Would you like to continue without authentication?', true)) {
                             return false;
                         }
-                        $this->sessionId = null;
+                        $this->cookie = null;
                     }
                 }
             } else {
                 $this->components->warn("Proceeding without authentication (some contests may not be accessible)");
-                $this->sessionId = null;
+                $this->cookie = null;
             }
         }
 
         return true;
     }
 
-    private function validateSession(string $sessionId): array
+    private function validateCookie(string $cookie): array
     {
         try {
             $response = Http::withHeaders([
                 'accept' => '*/*',
-                'cookie' => "JSESSIONlD={$sessionId}",
+                'cookie' => $cookie,
                 'x-requested-with' => 'XMLHttpRequest'
             ])->get(self::VJUDGE_API['BASE_URL'] . self::VJUDGE_API['ENDPOINTS']['USER_UPDATE']);
 
@@ -197,12 +197,12 @@ class UpdateVjudgeContest extends Command
                 }
             }
         } catch (Exception $e) {
-            Log::error("Vjudge session validation error: " . $e->getMessage());
+            Log::error("Vjudge cookie validation error: " . $e->getMessage());
         }
 
         return [
             'success' => false,
-            'error' => 'Invalid session'
+            'error' => 'Invalid cookie'
         ];
     }
 
@@ -256,15 +256,15 @@ class UpdateVjudgeContest extends Command
                 'x-requested-with' => 'XMLHttpRequest'
             ];
 
-            if ($this->sessionId) {
-                $headers['cookie'] = "JSESSIONlD={$this->sessionId}";
+            if ($this->cookie) {
+                $headers['cookie'] = $this->cookie;
             }
 
             $response = Http::withHeaders($headers)
                 ->get(self::VJUDGE_API['BASE_URL'] . self::VJUDGE_API['ENDPOINTS']['CONTEST_RANK'] . '/' . $contestId);
 
             if (!$response->successful()) {
-                $error = $this->sessionId ? "Failed to fetch data" : "AUTH_REQUIRED";
+                $error = $this->cookie ? "Failed to fetch data" : "AUTH_REQUIRED";
                 $this->components->error("  ├── API request failed: " . $error);
                 Log::error("Vjudge API error for contest {$contestId}: " . $error);
                 $this->failedUpdates++;
