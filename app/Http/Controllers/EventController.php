@@ -11,7 +11,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        return Event::with(['attenders','solveStats','rankLists'])->latest()->get();
+        return Event::with(['attenders', 'solveStats', 'rankLists.tracker'])->latest()->get();
 //        return  EventResource::collection(Event::paginate(10));
     }
 
