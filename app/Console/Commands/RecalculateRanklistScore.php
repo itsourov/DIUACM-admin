@@ -64,7 +64,11 @@ class RecalculateRanklistScore extends Command
     private function recalculateRanklistScores(RankList $rankList): void
     {
         // Get all users
-        $users = User::all();
+        $users = $rankList->users()->get();
+        if ($users->isEmpty()) {
+            $this->line(" - No users found for ranklist: {$rankList->title}");
+            return;
+        }
         
         // Get all events in this ranklist with their weights
         $events = $rankList->events()->get();
