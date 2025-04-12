@@ -13,3 +13,7 @@ Route::get('/events', [EventController::class,'index']);
 Route::get('/users', function (Request $request) {
    return User::all();
 });
+
+Route::get('/ranklists', function (Request $request) {
+    return \App\Models\RankList::with(['users'])->get();
+});
