@@ -302,7 +302,7 @@ class UpdateVjudgeContest extends Command
 
     private function processVjudgeData(array $data): array
     {
-        $timeLimit = $data['length'] / 1000;
+                $timeLimit = $data['length'] / 1000;
         $processed = [];
 
         foreach ($data['participants'] as $participant) {
@@ -329,6 +329,17 @@ class UpdateVjudgeContest extends Command
                         $processed[$username]['solve_count']++;
                         $processed[$username]['solved'][$problemIndex] = 1;
                     }
+                } 
+            }
+            foreach ($data['submissions'] as [$participantId, $problemIndex, $isAccepted, $timestamp]) {
+                $participant = $data['participants'][$participantId] ?? null;
+                if (!$participant) continue;
+
+                $username = $participant[0];
+                if (!isset($processed[$username])) continue;
+
+                if ($timestamp <= $timeLimit) {
+               
                 } elseif ($isAccepted === 1 && !$processed[$username]['solved'][$problemIndex]) {
                     $processed[$username]['upsolve_count']++;
                     $processed[$username]['solved'][$problemIndex] = 1;
