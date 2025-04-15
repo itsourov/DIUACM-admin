@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\HomeController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,3 +18,6 @@ Route::get('/users', function (Request $request) {
 Route::get('/ranklists', function (Request $request) {
     return \App\Models\RankList::with(['users'])->get();
 });
+
+Route::get('/incentive-query/{email}', [HomeController::class,'incentive']);
+
