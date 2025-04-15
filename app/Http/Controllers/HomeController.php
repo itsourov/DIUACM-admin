@@ -37,7 +37,7 @@ class HomeController extends Controller
         $individualRanklist = RankList::where('id', 1)->get();
         $individualContests = $individualRanklist->pluck('events')->flatten()->unique('id');
         $individualContests = $individualContests->filter(function($event) {
-            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00';
+            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00' &&  $event->starting_at <'2025-04-13 00:00:00';
         });
         $participationInIndividualContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->where('is_present', true)->count();
         $totalSolveCountInIndividualContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->sum('solve_count');
