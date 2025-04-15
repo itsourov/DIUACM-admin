@@ -48,8 +48,8 @@ class HomeController extends Controller
         $juniorIndividualContests = $juniorIndividualContests->filter(function($event) {
             return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00';
         });
-        $participationInJuniorIndividualContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->where('is_present', true)->count();
-        $totalSolveCountInJuniorIndividualContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->sum('solve_count');
+        $participationInJuniorIndividualContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $juniorIndividualContests->pluck('id'))->where('is_present', true)->count();
+        $totalSolveCountInJuniorIndividualContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $juniorIndividualContests->pluck('id'))->sum('solve_count');
 
 
 
