@@ -31,13 +31,16 @@ class HomeController extends Controller
 
         $teamSelectionRanklists = RankList::where('id', 4)->orWhere('id', 5)->get();
         $teamSelectionContests = $teamSelectionRanklists->pluck('events')->flatten()->unique('id');
+        $teamSelectionContests = $teamSelectionContests->filter(function($event) {
+            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00' && $event->starting_at < '2025-04-12 00:00:00';
+        });
         $participationInTeamSelectionContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $teamSelectionContests->pluck('id'))->where('is_present', true)->count();
         $totalSolveCountInTeamSelectionContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $teamSelectionContests->pluck('id'))->sum('solve_count');
 
         $individualRanklist = RankList::where('id', 1)->get();
         $individualContests = $individualRanklist->pluck('events')->flatten()->unique('id');
-        $individualContests = $individualContests->filter(function ($event) {
-            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at > '2025-01-01 00:00:00' && $event->starting_at < now()->subdays(10);
+        $individualContests = $individualContests->filter(function($event) {
+            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00';
         });
         $participationInIndividualContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->where('is_present', true)->count();
         $totalSolveCountInIndividualContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $individualContests->pluck('id'))->sum('solve_count');
@@ -45,11 +48,14 @@ class HomeController extends Controller
 
         $juniorIndividualRanklist = RankList::where('id', 3)->get();
         $juniorIndividualContests = $juniorIndividualRanklist->pluck('events')->flatten()->unique('id');
-        $juniorIndividualContests = $juniorIndividualContests->filter(function ($event) {
-            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at > '2025-01-01 00:00:00' && $event->starting_at < now()->subdays(10);
+        $juniorIndividualContests = $juniorIndividualContests->filter(function($event) {
+            return str_starts_with($event->event_link, 'https://vjudge.net/contest') && $event->starting_at >'2025-01-01 00:00:00';
         });
         $participationInJuniorIndividualContest = SolveStat::where('user_id', $user->id)->whereIn('event_id', $juniorIndividualContests->pluck('id'))->where('is_present', true)->count();
         $totalSolveCountInJuniorIndividualContests = SolveStat::where('user_id', $user->id)->whereIn('event_id', $juniorIndividualContests->pluck('id'))->sum('solve_count');
+
+
+
 
 
         return [
@@ -61,7 +67,6 @@ class HomeController extends Controller
             'totalSolveCountInIndividualContests' => $totalSolveCountInIndividualContests,
             'participationInJuniorIndividualContest' => $participationInJuniorIndividualContest,
             'totalSolveCountInJuniorIndividualContests' => $totalSolveCountInJuniorIndividualContests,
-            'ok'=>true,
 
         ];
 
