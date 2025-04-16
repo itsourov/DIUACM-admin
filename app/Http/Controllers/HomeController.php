@@ -73,13 +73,16 @@ class HomeController extends Controller
     {
         return [
             'ranklist' => $ranklist,
-            'scores' => $ranklist->users()->get()->map(function ($user) {
-                return [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'score' => $user->pivot->score ?? 0
-                ];
-            })
+            'scores' => $ranklist->users()->get()
+                ->map(function ($user) {
+                    return [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'score' => $user->pivot->score ?? 0
+                    ];
+                })
+                ->sortByDesc('score')
+                ->values()
         ];
     }
 }
