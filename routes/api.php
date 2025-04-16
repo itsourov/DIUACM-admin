@@ -19,5 +19,8 @@ Route::get('/ranklists', function (Request $request) {
     return \App\Models\RankList::with(['users'])->get();
 });
 
+
+
 Route::get('/incentive-query/{email}', [HomeController::class,'incentive']);
+Route::get('/ranklist-score/{ranklist}', [HomeController::class,'ranklistScore']);
 
