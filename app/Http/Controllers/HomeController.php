@@ -78,7 +78,7 @@ class HomeController extends Controller
                     return [
                         'name' => $user->name,
                         'email' => $user->email,
-                        'score' => $user->pivot->score ?? 0
+                        'score' => (float)($user->pivot->score ?? 0.0)
                     ];
                 })
                 ->sortByDesc('score')
